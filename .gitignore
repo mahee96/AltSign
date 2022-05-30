@@ -33,3 +33,6 @@ xcuserdata
 *.hmap
 *.ipa
 *.swiftpm
+
+/.build
+/.vscode
