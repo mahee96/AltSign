@@ -27,7 +27,7 @@ let package = Package(
             name: "OpenSSL",
             path: "Dependencies/OpenSSL/Frameworks/OpenSSL.xcframework"
         ),
-        
+
         .target(
             name: "ldid-core",
             path: "Dependencies/ldid",
@@ -70,6 +70,7 @@ let package = Package(
                 "lookup2.c",
                 "libplist/src",
                 "libplist/libcnary",
+//                "libplist/libcnary/src",
             ],
             publicHeadersPath: "",
             cSettings: [
@@ -77,7 +78,7 @@ let package = Package(
                 .headerSearchPath("libplist/src"),
                 .headerSearchPath("libplist/libcnary/include"),
                 .headerSearchPath("../OpenSSL/ios/include"),
-                
+
                 .unsafeFlags(["-w"])
             ],
             cxxSettings: [
@@ -106,7 +107,7 @@ let package = Package(
                 .unsafeFlags(["-w"])
             ]
         ),
-        
+
         .target(
             name: "CCoreCrypto",
             path: "Dependencies/corecrypto",
@@ -179,7 +180,7 @@ let package = Package(
             ]
         )
     ],
-    
+
     cLanguageStandard: CLanguageStandard.gnu11,
     cxxLanguageStandard: .cxx14
 )
