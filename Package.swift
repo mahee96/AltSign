@@ -150,6 +150,7 @@ let package = Package(
                 "Dependencies/minizip/Makefile",
                 "Dependencies/minizip/minizip.c",
                 "Dependencies/minizip/miniunz.c",
+//                "Dependencies/minizip/ChangeLogUnzip",
             ],
             publicHeadersPath: "AltSign/include",
             cSettings: [
