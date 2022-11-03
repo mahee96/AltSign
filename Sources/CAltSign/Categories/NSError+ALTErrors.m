@@ -16,6 +16,9 @@ NSErrorUserInfoKey const ALTSourceFileErrorKey = @"ALTSourceFile";
 NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
 NSErrorUserInfoKey const ALTAppNameErrorKey = @"appName";
 
+NSErrorUserInfoKey const ALTSourceFileErrorKey = @"ALTSourceFile";
+NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
+
 @implementation NSError (ALTError)
 
 + (void)load

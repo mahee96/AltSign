@@ -24,7 +24,8 @@ public extension ALTAppleAPIError
     }
 }
 
-public extension ALTAppleAPI {
+public extension ALTAppleAPI
+{
     @objc func authenticate(appleID unsanitizedAppleID: String,
                             password: String,
                             anisetteData: ALTAnisetteData,
@@ -229,8 +230,9 @@ private extension ALTAppleAPI {
                         var request = self.makeTwoFactorCodeRequest(url: verifyURL, dsid: dsid, idmsToken: idmsToken, anisetteData: anisetteData)
                         request.allHTTPHeaderFields?["security-code"] = verificationCode
 
-                        let verifyCodeTask = self.session.dataTask(with: request) { data, _, error in
-                            do {
+                        let verifyCodeTask = self.session.dataTask(with: request) { (data, response, error) in
+                            do
+                            {
                                 guard let data = data else { throw error ?? ALTAppleAPIError.unknown() }
 
                                 guard let responseDictionary = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
@@ -246,7 +248,7 @@ private extension ALTAppleAPI {
                                     guard let errorDescription = responseDictionary["em"] as? String else { throw ALTAppleAPIError.unknown() }
 
                                     let localizedDescription = errorDescription + " (\(errorCode))"
-                                    throw NSError(domain: ALTUnderlyingAppleAPIErrorDomain, code: errorCode, userInfo: [NSLocalizedDescriptionKey: localizedDescription])
+                                    throw ALTAppleAPIError.unknown(userInfo: [NSLocalizedDescriptionKey: localizedDescription])
                                 }
                             } catch {
                                 completionHandler(.failure(error))
@@ -345,11 +347,13 @@ private extension ALTAppleAPI {
         requestCodeTask.resume()
     }
 
-    func fetchAccount(session: ALTAppleAPISession, completionHandler: @escaping (Result<ALTAccount, Error>) -> Void) {
-        let url = URL(string: "viewDeveloper.action", relativeTo: baseURL)!
+    func fetchAccount(session: ALTAppleAPISession, completionHandler: @escaping (Result<ALTAccount, Error>) -> Void)
+    {
+        let url = URL(string: "viewDeveloper.action", relativeTo: self.baseURL)!
 
-        sendRequest(with: url, additionalParameters: nil, session: session, team: nil) { responseDictionary, requestError in
-            do {
+        self.sendRequest(with: url, additionalParameters: nil, session: session, team: nil) { (responseDictionary, requestError) in
+            do
+            {
                 guard let responseDictionary = responseDictionary else { throw requestError ?? ALTAppleAPIError.unknown() }
 
                 guard let account = try self.processResponse(responseDictionary, parseHandler: { () -> Any? in
@@ -392,8 +396,9 @@ private extension ALTAppleAPI {
             request.httpBody = bodyData
             httpHeaders.forEach { request.addValue($0.value, forHTTPHeaderField: $0.key) }
 
-            let dataTask = session.dataTask(with: request) { data, _, error in
-                do {
+            let dataTask = self.session.dataTask(with: request) { (data, response, error) in
+                do
+                {
                     guard let data = data else { throw error ?? ALTAppleAPIError.unknown() }
 
                     guard let responseDictionary = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
@@ -411,7 +416,7 @@ private extension ALTAppleAPI {
                         guard let errorDescription = status["em"] as? String else { throw ALTAppleAPIError.unknown() }
 
                         let localizedDescription = errorDescription + " (\(errorCode))"
-                        throw NSError(domain: ALTUnderlyingAppleAPIErrorDomain, code: errorCode, userInfo: [NSLocalizedDescriptionKey: localizedDescription])
+                        throw ALTAppleAPIError.unknown(userInfo: [NSLocalizedDescriptionKey: localizedDescription])
                     }
                 } catch {
                     completionHandler(.failure(error))

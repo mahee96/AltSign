@@ -29,34 +29,34 @@ typedef NS_ERROR_ENUM(ALTAppleAPIErrorDomain, ALTAppleAPIError)
 {
     ALTAppleAPIErrorUnknown = 3000,
     ALTAppleAPIErrorInvalidParameters = 3001,
-    
+
     ALTAppleAPIErrorIncorrectCredentials = 3002,
     ALTAppleAPIErrorAppSpecificPasswordRequired = 3003,
-    
+
     ALTAppleAPIErrorNoTeams = 3004,
-    
+
     ALTAppleAPIErrorInvalidDeviceID = 3005,
     ALTAppleAPIErrorDeviceAlreadyRegistered = 3006,
-    
+
     ALTAppleAPIErrorInvalidCertificateRequest = 3007,
     ALTAppleAPIErrorCertificateDoesNotExist = 3008,
-    
+
     ALTAppleAPIErrorInvalidAppIDName = 3009,
     ALTAppleAPIErrorInvalidBundleIdentifier = 3010,
     ALTAppleAPIErrorBundleIdentifierUnavailable = 3011,
     ALTAppleAPIErrorAppIDDoesNotExist = 3012,
     ALTAppleAPIErrorMaximumAppIDLimitReached = 3013,
-    
+
     ALTAppleAPIErrorInvalidAppGroup = 3014,
     ALTAppleAPIErrorAppGroupDoesNotExist = 3015,
-    
+
     ALTAppleAPIErrorInvalidProvisioningProfileIdentifier = 3016,
     ALTAppleAPIErrorProvisioningProfileDoesNotExist = 3017,
-    
+
     ALTAppleAPIErrorRequiresTwoFactorAuthentication = 3018,
     ALTAppleAPIErrorIncorrectVerificationCode = 3019,
     ALTAppleAPIErrorAuthenticationHandshakeFailed = 3020,
-    
+
     ALTAppleAPIErrorInvalidAnisetteData = 3021,
 };
 
