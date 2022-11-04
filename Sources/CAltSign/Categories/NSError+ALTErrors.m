@@ -43,10 +43,10 @@ NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
             // Return failureReason for both keys to prevent prepending "Operation Failed" message to localizedDescription.
             return [error alt_localizedFailureReason];
         }
-        
+
         return nil;
     }];
-    
+
     [NSError setUserInfoValueProviderForDomain:ALTAppleAPIErrorDomain provider:^id _Nullable(NSError * _Nonnull error, NSErrorUserInfoKey  _Nonnull userInfoKey) {
         if ([userInfoKey isEqualToString:NSLocalizedDescriptionKey])
         {
@@ -71,7 +71,7 @@ NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
         {
             return [error alt_appleapi_localizedRecoverySuggestion];
         }
-        
+
         return nil;
     }];
 }
@@ -84,13 +84,13 @@ NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
     {
         return localizedFailure;
     }
-        
+
     id (^provider)(NSError *, NSErrorUserInfoKey) = [NSError userInfoValueProviderForDomain:self.domain];
     if (provider == nil)
     {
         return nil;
     }
-        
+
     localizedFailure = provider(self, NSLocalizedFailureErrorKey);
     return localizedFailure;
 }
@@ -101,20 +101,20 @@ NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
     {
         case ALTErrorUnknown:
             return NSLocalizedString(@"An unknown error occured.", @"");
-            
+
         case ALTErrorInvalidApp:
             return NSLocalizedString(@"The app is invalid.", @"");
-            
+
         case ALTErrorMissingAppBundle:
             return NSLocalizedString(@"The provided .ipa does not contain an app bundle.", @"");
-            
+
         case ALTErrorMissingInfoPlist:
             return NSLocalizedString(@"The provided app is missing its Info.plist.", @"");
-            
+
         case ALTErrorMissingProvisioningProfile:
             return NSLocalizedString(@"Could not find matching provisioning profile.", @"");
     }
-    
+
     return nil;
 }
 
@@ -124,31 +124,31 @@ NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
     {
         case ALTAppleAPIErrorUnknown:
             return NSLocalizedString(@"An unknown error occured.", @"");
-            
+
         case ALTAppleAPIErrorInvalidParameters:
             return NSLocalizedString(@"The provided parameters are invalid.", @"");
-            
+
         case ALTAppleAPIErrorIncorrectCredentials:
             return NSLocalizedString(@"Your Apple ID or password is incorrect.", @"");
-            
+
         case ALTAppleAPIErrorNoTeams:
             return NSLocalizedString(@"You are not a member of any development teams.", @"");
-            
+
         case ALTAppleAPIErrorAppSpecificPasswordRequired:
             return NSLocalizedString(@"An app-specific password is required. You can create one at appleid.apple.com.", @"");
-            
+
         case ALTAppleAPIErrorInvalidDeviceID:
             return NSLocalizedString(@"This device's UDID is invalid.", @"");
-            
+
         case ALTAppleAPIErrorDeviceAlreadyRegistered:
             return NSLocalizedString(@"This device is already registered with this team.", @"");
-            
+
         case ALTAppleAPIErrorInvalidCertificateRequest:
             return NSLocalizedString(@"The certificate request is invalid.", @"");
-            
+
         case ALTAppleAPIErrorCertificateDoesNotExist:
             return NSLocalizedString(@"There is no certificate with the requested serial number for this team.", @"");
-            
+
         case ALTAppleAPIErrorInvalidAppIDName:
         {
             NSString *appName = self.userInfo[ALTAppNameErrorKey];
@@ -156,47 +156,47 @@ NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
             {
                 return [NSString stringWithFormat:NSLocalizedString(@"The name “%@” contains invalid characters.", @""), appName];
             }
-            
+
             return NSLocalizedString(@"The name of this app contains invalid characters.", @"");
         }
-            
+
         case ALTAppleAPIErrorInvalidBundleIdentifier:
             return NSLocalizedString(@"The bundle identifier for this app is invalid.", @"");
-            
+
         case ALTAppleAPIErrorBundleIdentifierUnavailable:
             return NSLocalizedString(@"The bundle identifier for this app has already been registered.", @"");
-            
+
         case ALTAppleAPIErrorAppIDDoesNotExist:
             return NSLocalizedString(@"There is no App ID with the requested identifier on this team.", @"");
-            
+
         case ALTAppleAPIErrorMaximumAppIDLimitReached:
             return NSLocalizedString(@"You may only register 10 App IDs every 7 days.", @"");
-            
+
         case ALTAppleAPIErrorInvalidAppGroup:
             return NSLocalizedString(@"The provided app group is invalid.", @"");
-            
+
         case ALTAppleAPIErrorAppGroupDoesNotExist:
             return NSLocalizedString(@"App group does not exist", @"");
-            
+
         case ALTAppleAPIErrorInvalidProvisioningProfileIdentifier:
             return NSLocalizedString(@"The identifier for the requested provisioning profile is invalid.", @"");
-            
+
         case ALTAppleAPIErrorProvisioningProfileDoesNotExist:
             return NSLocalizedString(@"There is no provisioning profile with the requested identifier on this team.", @"");
-            
+
         case ALTAppleAPIErrorRequiresTwoFactorAuthentication:
             return NSLocalizedString(@"This account requires signing in with two-factor authentication.", @"");
-            
+
         case ALTAppleAPIErrorIncorrectVerificationCode:
             return NSLocalizedString(@"Incorrect verification code.", @"");
-            
+
         case ALTAppleAPIErrorAuthenticationHandshakeFailed:
             return NSLocalizedString(@"Failed to perform authentication handshake with server.", @"");
-            
+
         case ALTAppleAPIErrorInvalidAnisetteData:
             return NSLocalizedString(@"The provided anisette data is invalid.", @"");
     }
-    
+
     return nil;
 }
 
@@ -206,17 +206,17 @@ NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
     {
         case ALTAppleAPIErrorIncorrectCredentials:
             return NSLocalizedString(@"Please make sure you entered both your Apple ID and password correctly and try again.", @"");
-            
+
         case ALTAppleAPIErrorInvalidAnisetteData:
 #if TARGET_OS_OSX
             return NSLocalizedString(@"Make sure this computer's date & time matches your iOS device and try again.", @"");
 #else
             return NSLocalizedString(@"Make sure your computer's date & time matches your iOS device and try again. You may need to re-install AltStore with AltServer if the problem persists.", @"");
 #endif
-            
+
         default: break;
     }
-    
+
     return nil;
 }
 
