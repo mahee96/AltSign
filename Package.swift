@@ -8,7 +8,7 @@ let package = Package(
     name: "AltSign",
     platforms: [
         .iOS(.v14),
-        .macOS(.v11)
+        .macOS(.v11),
     ],
     products: [
 		// MARK: - AltSign
