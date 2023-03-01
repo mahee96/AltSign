@@ -66,7 +66,8 @@ let package = Package(
 		)
     ],
     dependencies: [
-        .package(url: "https://github.com/krzyzanowskim/OpenSSL.git", .upToNextMinor(from: "1.1.180"))
+        .package(url: "https://github.com/krzyzanowskim/OpenSSL.git", .upToNextMinor(from: "1.1.180")),
+		.package(url: "https://github.com/SideStore/iMobileDevice.swift", .upToNextMinor(from: "1.0.4"))
     ],
     targets: [
         // MARK: - AltSign
@@ -102,12 +103,8 @@ let package = Package(
                 .headerSearchPath("../ldid"),
                 .headerSearchPath("../ldid/include"),
                 .headerSearchPath("../minizip/include"),
-                .headerSearchPath("../ldid/libplist/include"),
                 .headerSearchPath("../ldid"),
                 .define("unix", to: "1"),
-                .unsafeFlags([
-                    "-w"
-                ])
             ],
             cxxSettings: [
                 .headerSearchPath("include/"),
@@ -116,12 +113,8 @@ let package = Package(
                 .headerSearchPath("../ldid"),
                 .headerSearchPath("../ldid/include"),
                 .headerSearchPath("../minizip/include"),
-                .headerSearchPath("../ldid/libplist/include"),
                 .headerSearchPath("../ldid"),
                 .define("unix", to: "1"),
-                .unsafeFlags([
-                    "-w"
-                ])
             ],
             linkerSettings: [
                 .linkedFramework("UIKit", .when(platforms: [.iOS])),
@@ -134,7 +127,8 @@ let package = Package(
         .target(
             name: "ldid-core",
             dependencies: [
-                "OpenSSL"
+                "OpenSSL",
+				.product(name: "libplist", package: "iMobileDevice.swift")
             ],
             exclude: [
                 "ldid.hpp",
@@ -147,34 +141,9 @@ let package = Package(
                 "make.sh",
                 "deb.sh",
                 "plist.sh",
-                "libplist/include",
-                "libplist/include/Makefile.am",
-                "libplist/fuzz",
-                "libplist/cython",
-                "libplist/m4",
-                "libplist/test",
-                "libplist/tools",
-                "libplist/AUTHORS",
-                "libplist/autogen.sh",
-                "libplist/configure.ac",
-                "libplist/COPYING",
-                "libplist/COPYING.LESSER",
-                "libplist/doxygen.cfg.in",
-                "libplist/Makefile.am",
-                "libplist/NEWS",
-                "libplist/README.md",
-                "libplist/src/Makefile.am",
-                "libplist/src/libplist++.pc.in",
-                "libplist/src/libplist.pc.in",
-                "libplist/libcnary/cnary.c",
-                "libplist/libcnary/COPYING",
-                "libplist/libcnary/Makefile.am",
-                "libplist/libcnary/README"
             ],
             sources: [
                 "lookup2.c",
-                "libplist/src",
-                "libplist/libcnary"
             ],
             publicHeadersPath: "",
             cSettings: [
@@ -198,6 +167,7 @@ let package = Package(
             ],
             publicHeadersPath: "include",
             cSettings: [
+                .headerSearchPath("../ldid-core"),
                 .headerSearchPath("../../Dependencies/ldid"),
                 .headerSearchPath("../../Dependencies/ldid/libplist/include"),
                 .headerSearchPath("../../Dependencies/ldid/libplist/src"),
@@ -265,7 +235,7 @@ let package = Package(
             swiftSettings: [
                 .define("MARKETPLACE")
             ]
-        )
+		)
     ],
 
     cLanguageStandard: CLanguageStandard.gnu11,
