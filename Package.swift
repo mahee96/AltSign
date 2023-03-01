@@ -45,6 +45,11 @@ let package = Package(
             ]
         ),
 
+		.testTarget(
+			name: "AltSignTests",
+			dependencies: ["AltSign"]
+		),
+
         .target(
             name: "CAltSign",
             dependencies: [
