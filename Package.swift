@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.7
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import Foundation
@@ -11,6 +11,7 @@ let package = Package(
         .macOS(.v11)
     ],
     products: [
+		// MARK: - AltSign
         .library(
             name: "AltSign",
             targets: ["AltSign"]
@@ -26,7 +27,43 @@ let package = Package(
             name: "AltSign-Dynamic",
             type: .dynamic,
             targets: ["AltSign"]
-        )
+        ),
+
+		// MARK: - CoreCrypto
+		.library(
+			name: "CoreCrypto",
+			targets: ["CoreCrypto", "CCoreCrypto"]
+		),
+
+		.library(
+			name: "CoreCrypto-Static",
+			type: .static,
+			targets: ["CoreCrypto", "CCoreCrypto"]
+		),
+
+		.library(
+			name: "CoreCrypto-Dynamic",
+			type: .dynamic,
+			targets: ["CoreCrypto", "CCoreCrypto"]
+		),
+
+		// MARK: - CCoreCrypto
+		.library(
+			name: "CCoreCrypto",
+			targets: ["CCoreCrypto"]
+		),
+
+		.library(
+			name: "CCoreCrypto-Static",
+			type: .static,
+			targets: ["CCoreCrypto"]
+		),
+
+		.library(
+			name: "CCoreCrypto-Dynamic",
+			type: .dynamic,
+			targets: ["CCoreCrypto"]
+		)
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/OpenSSL.git", .upToNextMinor(from: "1.1.180"))
