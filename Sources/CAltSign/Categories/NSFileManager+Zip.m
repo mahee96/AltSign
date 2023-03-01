@@ -10,6 +10,7 @@
 
 #import "NSError+ALTErrors.h"
 
+//@import minizip;
 #include "zip.h"
 #include "unzip.h"
 
