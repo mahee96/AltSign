@@ -8,8 +8,8 @@
 
 #import "ALTCertificate.h"
 
-#include <openssl/pem.h>
-#include <openssl/pkcs12.h>
+@import OpenSSL.pem;
+@import OpenSSL.pkcs12;
 
 NSString *ALTCertificatePEMPrefix = @"-----BEGIN CERTIFICATE-----";
 NSString *ALTCertificatePEMSuffix = @"-----END CERTIFICATE-----";

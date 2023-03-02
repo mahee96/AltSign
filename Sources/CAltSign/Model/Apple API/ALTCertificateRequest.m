@@ -8,7 +8,7 @@
 
 #import "ALTCertificateRequest.h"
 
-#include <openssl/pem.h>
+@import OpenSSL.pem;
 
 @implementation ALTCertificateRequest
 

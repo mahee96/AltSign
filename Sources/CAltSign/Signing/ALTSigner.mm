@@ -20,8 +20,13 @@
 
 #include <string>
 
-#include <openssl/pkcs12.h>
-#include <openssl/pem.h>
+#if SWIFT_MODULE
+@import OpenSSL.pem;
+@import OpenSSL.pkcs12;
+#else
+#import <openssl/pkcs12.h>
+#import <openssl/pem.h>
+#endif
 
 const char *AppleRootCertificateData = ""
 "-----BEGIN CERTIFICATE-----\n"
