@@ -393,8 +393,8 @@ struct ALTProgress: public ldid::Progress
                         continue;
                     }
 
-                    // Original app does not have this entitlement, so don't give it to resigned app.
-                    filteredEntitlements[entitlement] = nil;
+                     // Original app does not have this entitlement, so don't give it to resigned app.
+                     filteredEntitlements[entitlement] = nil;
                 }
             }
 
