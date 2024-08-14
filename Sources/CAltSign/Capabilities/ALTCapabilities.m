@@ -13,6 +13,7 @@ ALTEntitlement const ALTEntitlementApplicationIdentifier = @"application-identif
 ALTEntitlement const ALTEntitlementKeychainAccessGroups = @"keychain-access-groups";
 ALTEntitlement const ALTEntitlementAppGroups = @"com.apple.security.application-groups";
 ALTEntitlement const ALTEntitlementGetTaskAllow = @"get-task-allow";
+ALTEntitlement const ALTEntitlementIncreasedMemoryLimit = @"com.apple.developer.kernel.increased-memory-limit";
 ALTEntitlement const ALTEntitlementTeamIdentifier = @"com.apple.developer.team-identifier";
 ALTEntitlement const ALTEntitlementInterAppAudio = @"inter-app-audio";
 ALTEntitlement const ALTEntitlementIncreasedDebuggingMemoryLimit = @"com.apple.developer.kernel.increased-debugging-memory-limit";

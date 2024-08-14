@@ -16,6 +16,7 @@ extern ALTEntitlement const ALTEntitlementApplicationIdentifier;
 extern ALTEntitlement const ALTEntitlementKeychainAccessGroups;
 extern ALTEntitlement const ALTEntitlementAppGroups;
 extern ALTEntitlement const ALTEntitlementGetTaskAllow;
+extern ALTEntitlement const ALTEntitlementIncreasedMemoryLimit;
 extern ALTEntitlement const ALTEntitlementTeamIdentifier;
 extern ALTEntitlement const ALTEntitlementInterAppAudio;
 extern ALTEntitlement const ALTEntitlementIncreasedDebuggingMemoryLimit;
