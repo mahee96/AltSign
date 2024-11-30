@@ -8,16 +8,36 @@
 
 #import "NSError+ALTErrors.h"
 
-NSErrorDomain const AltSignErrorDomain = @"com.rileytestut.AltSign";
-NSErrorDomain const ALTAppleAPIErrorDomain = @"com.rileytestut.ALTAppleAPI";
+NSErrorDomain const AltSignErrorDomain = @"AltSign.Error";
+NSErrorDomain const ALTAppleAPIErrorDomain = @"AltStore.AppleDeveloperError";
+NSErrorDomain const ALTUnderlyingAppleAPIErrorDomain = @"Apple.APIError";
+
+NSErrorUserInfoKey const ALTSourceFileErrorKey = @"ALTSourceFile";
+NSErrorUserInfoKey const ALTSourceLineErrorKey = @"ALTSourceLine";
+NSErrorUserInfoKey const ALTAppNameErrorKey = @"appName";
 
 @implementation NSError (ALTError)
 
 + (void)load
 {
     [NSError setUserInfoValueProviderForDomain:AltSignErrorDomain provider:^id _Nullable(NSError * _Nonnull error, NSErrorUserInfoKey  _Nonnull userInfoKey) {
-        if ([userInfoKey isEqualToString:NSLocalizedFailureReasonErrorKey])
+        if ([userInfoKey isEqualToString:NSLocalizedDescriptionKey])
         {
+            if ([error altsign_localizedFailure] != nil)
+            {
+                // Error has localizedFailure, so return nil to construct localizedDescription from it + localizedFailureReason.
+                return nil;
+            }
+            else
+            {
+                // Otherwise, return failureReason for localizedDescription to avoid system prepending "Operation Failed" message.
+                // Do NOT return [error alt_localizedFailureReason], which might be unexpectedly nil if unrecognized error code.
+                return error.localizedFailureReason;
+            }
+        }
+        else if ([userInfoKey isEqualToString:NSLocalizedFailureReasonErrorKey])
+        {
+            // Return failureReason for both keys to prevent prepending "Operation Failed" message to localizedDescription.
             return [error alt_localizedFailureReason];
         }
         
@@ -27,7 +47,22 @@ NSErrorDomain const ALTAppleAPIErrorDomain = @"com.rileytestut.ALTAppleAPI";
     [NSError setUserInfoValueProviderForDomain:ALTAppleAPIErrorDomain provider:^id _Nullable(NSError * _Nonnull error, NSErrorUserInfoKey  _Nonnull userInfoKey) {
         if ([userInfoKey isEqualToString:NSLocalizedDescriptionKey])
         {
-            return [error alt_appleapi_localizedDescription];
+            if ([error altsign_localizedFailure] != nil)
+            {
+                // Error has localizedFailure, so return nil to construct localizedDescription from it + localizedFailureReason.
+                return nil;
+            }
+            else
+            {
+                // Otherwise, return failureReason for localizedDescription to avoid system prepending "Operation Failed" message.
+                // Do NOT return [error alt_appleapi_localizedFailureReason], which might be unexpectedly nil if unrecognized error code.
+                return error.localizedFailureReason;
+            }
+        }
+        else if ([userInfoKey isEqualToString:NSLocalizedFailureReasonErrorKey])
+        {
+            // Return failureReason for both keys to prevent prepending "Operation Failed" message to localizedDescription.
+            return [error alt_appleapi_localizedFailureReason];
         }
         else if ([userInfoKey isEqualToString:NSLocalizedRecoverySuggestionErrorKey])
         {
@@ -36,6 +71,25 @@ NSErrorDomain const ALTAppleAPIErrorDomain = @"com.rileytestut.ALTAppleAPI";
         
         return nil;
     }];
+}
+
+- (nullable NSString *)altsign_localizedFailure
+{
+    // Copied logic from AltStore's NSError+AltStore.swift.
+    NSString *localizedFailure = self.userInfo[NSLocalizedFailureErrorKey];
+    if (localizedFailure != nil)
+    {
+        return localizedFailure;
+    }
+        
+    id (^provider)(NSError *, NSErrorUserInfoKey) = [NSError userInfoValueProviderForDomain:self.domain];
+    if (provider == nil)
+    {
+        return nil;
+    }
+        
+    localizedFailure = provider(self, NSLocalizedFailureErrorKey);
+    return localizedFailure;
 }
 
 - (nullable NSString *)alt_localizedFailureReason
@@ -61,7 +115,7 @@ NSErrorDomain const ALTAppleAPIErrorDomain = @"com.rileytestut.ALTAppleAPI";
     return nil;
 }
 
-- (nullable NSString *)alt_appleapi_localizedDescription
+- (nullable NSString *)alt_appleapi_localizedFailureReason
 {
     switch ((ALTAppleAPIError)self.code)
     {
@@ -72,7 +126,7 @@ NSErrorDomain const ALTAppleAPIErrorDomain = @"com.rileytestut.ALTAppleAPI";
             return NSLocalizedString(@"The provided parameters are invalid.", @"");
             
         case ALTAppleAPIErrorIncorrectCredentials:
-            return NSLocalizedString(@"Incorrect Apple ID or password.", @"");
+            return NSLocalizedString(@"Your Apple ID or password is incorrect.", @"");
             
         case ALTAppleAPIErrorNoTeams:
             return NSLocalizedString(@"You are not a member of any development teams.", @"");
@@ -93,7 +147,15 @@ NSErrorDomain const ALTAppleAPIErrorDomain = @"com.rileytestut.ALTAppleAPI";
             return NSLocalizedString(@"There is no certificate with the requested serial number for this team.", @"");
             
         case ALTAppleAPIErrorInvalidAppIDName:
-            return NSLocalizedString(@"The name for this app is invalid.", @"");
+        {
+            NSString *appName = self.userInfo[ALTAppNameErrorKey];
+            if (appName != nil)
+            {
+                return [NSString stringWithFormat:NSLocalizedString(@"The name “%@” contains invalid characters.", @""), appName];
+            }
+            
+            return NSLocalizedString(@"The name of this app contains invalid characters.", @"");
+        }
             
         case ALTAppleAPIErrorInvalidBundleIdentifier:
             return NSLocalizedString(@"The bundle identifier for this app is invalid.", @"");
@@ -139,6 +201,9 @@ NSErrorDomain const ALTAppleAPIErrorDomain = @"com.rileytestut.ALTAppleAPI";
 {
     switch ((ALTAppleAPIError)self.code)
     {
+        case ALTAppleAPIErrorIncorrectCredentials:
+            return NSLocalizedString(@"Please make sure you entered both your Apple ID and password correctly and try again.", @"");
+            
         case ALTAppleAPIErrorInvalidAnisetteData:
 #if TARGET_OS_OSX
             return NSLocalizedString(@"Make sure this computer's date & time matches your iOS device and try again.", @"");

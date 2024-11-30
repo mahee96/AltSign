@@ -397,7 +397,7 @@ NS_ASSUME_NONNULL_END
             switch (resultCode)
             {
                 case 35:
-                    return [NSError errorWithDomain:ALTAppleAPIErrorDomain code:ALTAppleAPIErrorInvalidAppIDName userInfo:nil];
+                    return [NSError errorWithDomain:ALTAppleAPIErrorDomain code:ALTAppleAPIErrorInvalidAppIDName userInfo:@{ALTAppNameErrorKey: sanitizedName}];
                     
                 case 9120:
                     return [NSError errorWithDomain:ALTAppleAPIErrorDomain code:ALTAppleAPIErrorMaximumAppIDLimitReached userInfo:nil];
@@ -906,9 +906,9 @@ NS_ASSUME_NONNULL_END
             NSString *errorDescription = [responseDictionary objectForKey:@"userString"] ?: [responseDictionary objectForKey:@"resultString"];
             NSString *localizedDescription = [NSString stringWithFormat:@"%@ (%@)", errorDescription, @(resultCode)];
             
-            NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
-            userInfo[NSLocalizedDescriptionKey] = localizedDescription;
-            tempError = [NSError errorWithDomain:ALTAppleAPIErrorDomain code:ALTAppleAPIErrorUnknown userInfo:userInfo];
+            tempError = [NSError errorWithDomain:ALTUnderlyingAppleAPIErrorDomain code:resultCode userInfo:@{
+                NSLocalizedDescriptionKey: localizedDescription,
+            }];
         }
         
         *error = tempError;
