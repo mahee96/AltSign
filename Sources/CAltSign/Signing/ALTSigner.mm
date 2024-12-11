@@ -360,12 +360,6 @@ std::string CertificatesContent(ALTCertificate *altCertificate)
 
                         filteredEntitlements[entitlement] = keychainAccessGroups;
                     }
-                    else if ([entitlement isEqualToString:ALTEntitlementIncreasedMemoryLimit])
-                    {
-                        // Specific handling for the increased memory limit entitlement.
-                        // Ensure it is preserved if present in the downloaded app.
-                        filteredEntitlements[entitlement] = entitlementValue;
-                    }
                     else
                     {
                         // Downloaded app has this entitlement, so don't remove.
@@ -374,7 +368,7 @@ std::string CertificatesContent(ALTCertificate *altCertificate)
                 }
                 else
                 {
-                  if ([entitlement isEqualToString:ALTEntitlementApplicationIdentifier] || [entitlement isEqualToString:ALTEntitlementTeamIdentifier] || [entitlement isEqualToString:ALTEntitlementGetTaskAllow]) // || [entitlement isEqualToString:ALTEntitlementIncreasedMemoryLimit])
+                  if ([entitlement isEqualToString:ALTEntitlementApplicationIdentifier] || [entitlement isEqualToString:ALTEntitlementTeamIdentifier] || [entitlement isEqualToString:ALTEntitlementGetTaskAllow] || [entitlement isEqualToString:ALTEntitlementIncreasedMemoryLimit])
                     {
                         // Apps signed with development profiles _must_ have these entitlements, so never remove them,
                         // even if downloaded app doesn't have them originally.
