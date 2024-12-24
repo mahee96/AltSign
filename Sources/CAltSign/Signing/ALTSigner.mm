@@ -386,7 +386,7 @@ struct ALTProgress: public ldid::Progress
                 }
                 else
                 {
-                  if ([entitlement isEqualToString:ALTEntitlementApplicationIdentifier] || [entitlement isEqualToString:ALTEntitlementTeamIdentifier] || [entitlement isEqualToString:ALTEntitlementGetTaskAllow] || [entitlement isEqualToString:ALTEntitlementIncreasedMemoryLimit])
+                  if ([entitlement isEqualToString:ALTEntitlementApplicationIdentifier] || [entitlement isEqualToString:ALTEntitlementTeamIdentifier] || [entitlement isEqualToString:ALTEntitlementGetTaskAllow] || [entitlement isEqualToString:ALTEntitlementIncreasedMemoryLimit] || [entitlement isEqualToString:ALTEntitlementIncreasedDebuggingMemoryLimit])
                     {
                         // Apps signed with development profiles _must_ have these entitlements, so never remove them,
                         // even if downloaded app doesn't have them originally.
