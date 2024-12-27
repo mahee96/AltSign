@@ -218,19 +218,6 @@ let package = Package(
 //                 .define("MARKETPLACE")
 //             ]
 		),
-
-		// MARK: - minizip
-
-		.target(
-			name: "minizip",
-			path : "Dependencies/minizip",
-			sources: [
-				"minizip/zip.c",
-				"minizip/unzip.c",
-				"minizip/ioapi.c"
-			],
-			publicHeadersPath: ""
-		)
 	],
 
 	cLanguageStandard: CLanguageStandard.gnu11,
