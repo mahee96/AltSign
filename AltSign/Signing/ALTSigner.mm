@@ -24,8 +24,8 @@
 @import OpenSSL.pem;
 @import OpenSSL.pkcs12;
 #else
-#import <openssl/pkcs12.h>
-#import <openssl/pem.h>
+#include <openssl/pem.h>
+#include <openssl/pkcs12.h>
 #endif
 
 const char *AppleRootCertificateData = ""

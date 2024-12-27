@@ -8,7 +8,11 @@
 
 #import "ALTCertificateRequest.h"
 
+#if SWIFT_MODULE
 @import OpenSSL.pem;
+#else
+#include <openssl/pem.h>
+#endif
 
 @implementation ALTCertificateRequest
 
