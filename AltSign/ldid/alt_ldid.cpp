@@ -11,7 +11,7 @@
 // Redefine ldid's main function to ldid_main to prevent duplicate main declarations.
 #define main ldid_main
 
-#include "../ldid-core/ldid.cpp"
+#include "../../Dependencies/ldid/ldid.cpp"
 
 // Undefine our hacky main redefinition.
 #undef main

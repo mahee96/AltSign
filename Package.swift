@@ -233,7 +233,7 @@ let package = Package(
 
         .target(
             name: "minizip",
-            path : "Dependencies/minizip"
+            path : "Dependencies/minizip",
             sources: [
                 "minizip/zip.c",
                 "minizip/unzip.c",
