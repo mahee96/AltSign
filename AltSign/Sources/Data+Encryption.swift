@@ -6,8 +6,11 @@
 //  Copyright © 2020 Riley Testut. All rights reserved.
 //
 
-import CoreCrypto
 import Foundation
+
+#if !MARKETPLACE
+import CoreCrypto
+#endif
 
 extension Data {
     static func makeBuffer<T>(size: Int, type: T.Type) -> UnsafeMutablePointer<T> {
@@ -21,7 +24,14 @@ extension Data {
         return hexData
     }
 
-    func decryptedCBC(context gsaContext: GSAContext) -> Data? {
+    func decryptedCBC(context gsaContext: GSAContext) -> Data?
+    {
+        #if MARKETPLACE
+
+        return nil
+
+        #else
+
         guard let mode = ccaes_cbc_decrypt_mode() else { return nil }
 
         let context = Data.makeBuffer(size: mode.pointee.size, type: cccbc_ctx.self)
@@ -44,9 +54,18 @@ extension Data {
 
         guard size <= count else { return nil }
         return decryptedData
+
+        #endif
     }
 
-    func decryptedGCM(context gsaContext: GSAContext) -> Data? {
+    func decryptedGCM(context gsaContext: GSAContext) -> Data?
+    {
+        #if MARKETPLACE
+
+        return nil
+
+        #else
+
         guard let mode = ccaes_gcm_decrypt_mode(),
               let sessionKey = gsaContext.sessionKey else { return nil }
 
@@ -82,5 +101,7 @@ extension Data {
 
         guard tag == decryptedTag else { return nil }
         return decryptedData
+
+        #endif
     }
 }

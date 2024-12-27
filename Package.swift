@@ -229,6 +229,55 @@ let package = Package(
             ]
         ),
 
+        .target(
+            name: "CAltSign",
+            dependencies: ["CoreCrypto", "ldid"],
+            path: "",
+            exclude: [
+                "AltSign/ldid/alt_ldid.cpp",
+                "AltSign/ldid/alt_ldid.hpp",
+                "AltSign/Sources",
+                "AltSign/include/module.modulemap",
+                "Dependencies/corecrypto",
+                "Dependencies/ldid",
+                "Dependencies/OpenSSL",
+                "Dependencies/minizip/iowin32.c",
+                "Dependencies/minizip/Makefile",
+                "Dependencies/minizip/minizip.c",
+                "Dependencies/minizip/miniunz.c",
+                "Dependencies/minizip/ChangeLogUnzip",
+            ],
+            publicHeadersPath: "AltSign/include",
+            cSettings: [
+                // Recursive wildcard paths no longer work as of Xcode 16 :(
+                // .headerSearchPath("AltSign/**"),
+                .headerSearchPath("AltSign/include/AltSign"),
+                .headerSearchPath("AltSign/ldid"),
+                .headerSearchPath("Dependencies/minizip"),
+                .headerSearchPath("AltSign/Capabilities"),
+//                 .headerSearchPath("Dependencies/OpenSSL/ios/include"),
+                .headerSearchPath("Dependencies/ldid/libplist/include"),
+                .headerSearchPath("Dependencies/ldid"),
+                .define("unix=1"),
+            ],
+            linkerSettings: [
+                .linkedFramework("UIKit", .when(platforms: [.iOS])),
+                .linkedFramework("Security"),
+            ]
+        ),
+        .target(
+            name: "AltSign",
+            dependencies: ["CAltSign"],
+            path: "AltSign/Sources",
+            cSettings: [
+                .headerSearchPath("Dependencies/minizip"),
+                .define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1"),
+            ]
+//             swiftSettings: [
+//                 .define("MARKETPLACE")
+//             ]
+        ),
+
         // MARK: - minizip
 
         .target(

@@ -6,10 +6,14 @@
 //  Copyright © 2020 Riley Testut. All rights reserved.
 //
 
-import CoreCrypto
 import Foundation
 
-class GSAContext {
+#if !MARKETPLACE
+import CoreCrypto
+#endif
+
+class GSAContext
+{
     let username: String
     let password: String
 
@@ -33,6 +37,8 @@ class GSAContext {
     /// M1
     private(set) var verificationMessage: Data?
 
+    #if !MARKETPLACE
+
     /// SRP group: https://tools.ietf.org/html/rfc5054#page-16
     private let srpGroup = ccsrp_gp_rfc5054_2048()!
 
@@ -47,104 +53,160 @@ class GSAContext {
         return context
     }()
 
-    init(username: String, password: String) {
+    #endif
+
+    init(username: String, password: String)
+    {
         self.username = username
         self.password = password
     }
 
-    deinit {
+    deinit
+    {
+        #if !MARKETPLACE
         self.srpContext.deallocate()
+        #endif
     }
 }
 
-extension GSAContext {
-    func start() -> Data? {
-        guard publicKey == nil else { return nil }
+extension GSAContext
+{
+    func start() -> Data?
+    {
+        guard self.publicKey == nil else { return nil }
 
-        publicKey = makeAKey()
-        return publicKey
+        self.publicKey = self.makeAKey()
+        return self.publicKey
     }
 
-    func makeVerificationMessage(iterations: Int, isHexadecimal: Bool) -> Data? {
-        guard verificationMessage == nil else { return nil }
-        guard let salt = salt, let serverPublicKey = serverPublicKey else { return nil }
+    func makeVerificationMessage(iterations: Int, isHexadecimal: Bool) -> Data?
+    {
+        guard self.verificationMessage == nil else { return nil }
+        guard let salt = self.salt, let serverPublicKey = self.serverPublicKey else { return nil }
 
-        guard let derivedPasswordKey = makeX(password: password, salt: salt, iterations: iterations, isHexadecimal: isHexadecimal) else { return nil }
+        guard let derivedPasswordKey = self.makeX(password: self.password, salt: salt, iterations: iterations, isHexadecimal: isHexadecimal) else { return nil }
         self.derivedPasswordKey = derivedPasswordKey
 
-        verificationMessage = makeM1(username: username, derivedPasswordKey: derivedPasswordKey, salt: salt, serverPublicKey: serverPublicKey)
-        return verificationMessage
+        self.verificationMessage = self.makeM1(username: self.username, derivedPasswordKey: derivedPasswordKey, salt: salt, serverPublicKey: serverPublicKey)
+        return self.verificationMessage
     }
 
-    func verifyServerVerificationMessage(_ serverVerificationMessage: Data) -> Bool {
+    func verifyServerVerificationMessage(_ serverVerificationMessage: Data) -> Bool
+    {
+        #if MARKETPLACE
+
+        return false
+
+        #else
+
         guard !serverVerificationMessage.isEmpty else { return false }
 
-        let isValid = serverVerificationMessage.withUnsafeBytes { bytes -> Bool in
+        let isValid = serverVerificationMessage.withUnsafeBytes { (bytes) -> Bool in
             let pointer = bytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
             return ccsrp_client_verify_session(self.srpContext, pointer)
         }
 
         return isValid
+
+        #endif
     }
 
-    func makeChecksum(appName: String) -> Data? {
-        guard let sessionKey = sessionKey, let dsid = dsid else { return nil }
+    func makeChecksum(appName: String) -> Data?
+    {
+        #if MARKETPLACE
 
-        let size = cchmac_di_size(digestInfo)
+        return nil
+
+        #else
+
+        guard let sessionKey = self.sessionKey, let dsid = self.dsid else { return nil }
+
+        let size = cchmac_di_size(self.digestInfo)
 
         let context = Data.makeBuffer(size: size, type: cchmac_ctx.self)
         defer { context.deallocate() }
 
         sessionKey.withUnsafeBytes { cchmac_init(self.digestInfo, context, sessionKey.count, $0.baseAddress) }
 
-        for string in ["apptokens", dsid, appName] {
-            cchmac_update(digestInfo, context, string.count, string)
+        for string in ["apptokens", dsid, appName]
+        {
+            cchmac_update(self.digestInfo, context, string.count, string)
         }
 
-        var checksum = Data(repeating: 0, count: digestInfo.pointee.output_size)
+        var checksum = Data(repeating: 0, count: self.digestInfo.pointee.output_size)
         checksum.withUnsafeMutableBytes { cchmac_final(self.digestInfo, context, $0.baseAddress?.assumingMemoryBound(to: UInt8.self)) }
         return checksum
+
+        #endif
     }
 }
 
-internal extension GSAContext {
-    func makeHMACKey(_ string: String) -> Data {
+internal extension GSAContext
+{
+    func makeHMACKey(_ string: String) -> Data
+    {
+        #if MARKETPLACE
+
+        return Data()
+
+        #else
+
         var keySize = 0
-        let rawSessionKey = ccsrp_get_session_key(srpContext, &keySize)
+        let rawSessionKey = ccsrp_get_session_key(self.srpContext, &keySize)
 
         var sessionKey = Data(repeating: 0, count: keySize)
         sessionKey.withUnsafeMutableBytes { cchmac(self.digestInfo, keySize, rawSessionKey, string.count, string, $0.baseAddress?.assumingMemoryBound(to: UInt8.self)) }
         return sessionKey
+
+        #endif
     }
 }
 
-private extension GSAContext {
-    func makeAKey() -> Data? {
-        let size = ccsrp_exchange_size(srpContext)
+private extension GSAContext
+{
+    func makeAKey() -> Data?
+    {
+        #if MARKETPLACE
+
+        return nil
+
+        #else
+
+        let size = ccsrp_exchange_size(self.srpContext)
 
         var keyA = Data(repeating: 0, count: size)
         let result = keyA.withUnsafeMutableBytes { ccsrp_client_start_authentication(self.srpContext, ccrng(nil), $0.baseAddress!) }
 
         guard result == 0 else { return nil }
         return keyA
+
+        #endif
     }
 
-    func makeX(password: String, salt: Data, iterations: Int, isHexadecimal: Bool) -> Data? {
-        var digest = Data(repeating: 0, count: digestInfo.pointee.output_size)
+    func makeX(password: String, salt: Data, iterations: Int, isHexadecimal: Bool) -> Data?
+    {
+        #if MARKETPLACE
+
+        return nil
+
+        #else
+
+        var digest = Data(repeating: 0, count: self.digestInfo.pointee.output_size)
         digest.withUnsafeMutableBytes { ccdigest(self.digestInfo, password.utf8.count, password, $0.baseAddress!) }
 
-        let digestLength = isHexadecimal ? digestInfo.pointee.output_size * 2 : digestInfo.pointee.output_size
+        let digestLength = isHexadecimal ? self.digestInfo.pointee.output_size * 2 : self.digestInfo.pointee.output_size
 
-        if isHexadecimal {
+        if isHexadecimal
+        {
             let hexDigest = digest.hexadecimal()
             digest = hexDigest
         }
 
-        var x = Data(repeating: 0, count: digestInfo.pointee.output_size)
+        var x = Data(repeating: 0, count: self.digestInfo.pointee.output_size)
 
-        let result = x.withUnsafeMutableBytes { xBytes in
-            digest.withUnsafeBytes { digestBytes in
-                salt.withUnsafeBytes { saltBytes in
+        let result = x.withUnsafeMutableBytes { (xBytes) in
+            digest.withUnsafeBytes { (digestBytes) in
+                salt.withUnsafeBytes { (saltBytes) in
                     ccpbkdf2_hmac(self.digestInfo, digestLength, digestBytes.baseAddress, salt.count, saltBytes.baseAddress, iterations, self.digestInfo.pointee.output_size, xBytes.baseAddress)
                 }
             }
@@ -152,17 +214,26 @@ private extension GSAContext {
 
         guard result == 0 else { return nil }
         return x
+
+        #endif
     }
 
-    func makeM1(username: String, derivedPasswordKey x: Data, salt: Data, serverPublicKey B: Data) -> Data? {
-        let size = ccsrp_get_session_key_length(srpContext)
+    func makeM1(username: String, derivedPasswordKey x: Data, salt: Data, serverPublicKey B: Data) -> Data?
+    {
+        #if MARKETPLACE
+
+        return nil
+
+        #else
+
+        let size = ccsrp_get_session_key_length(self.srpContext)
 
         var M1 = Data(repeating: 0, count: size)
 
-        let result = M1.withUnsafeMutableBytes { m1Bytes in
-            x.withUnsafeBytes { xBytes in
-                salt.withUnsafeBytes { saltBytes in
-                    B.withUnsafeBytes { bBytes in
+        let result = M1.withUnsafeMutableBytes { (m1Bytes) in
+            x.withUnsafeBytes { (xBytes) in
+                salt.withUnsafeBytes { (saltBytes) in
+                    B.withUnsafeBytes { (bBytes) in
                         ccsrp_client_process_challenge(self.srpContext, username, xBytes.count, xBytes.baseAddress!,
                                                        salt.count, saltBytes.baseAddress!, bBytes.baseAddress!, m1Bytes.baseAddress!)
                     }
@@ -172,5 +243,7 @@ private extension GSAContext {
 
         guard result == 0 else { return nil }
         return M1
+
+        #endif
     }
 }
