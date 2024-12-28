@@ -72,7 +72,7 @@ bool ALTFreeDeveloperCanUseEntitlement(ALTEntitlement entitlement) {
     {
         return true;
     }
-    return true;
+    return false;
 }
 
 _Nullable ALTFeature ALTFeatureForEntitlement(ALTEntitlement entitlement)
