@@ -38,7 +38,7 @@ let package = Package(
 		// exposing OpenSSL as target
 		.binaryTarget(
 			name: "OpenSSL",
-			path: "Dependencies/OpenSSL/Frameworks/OpenSSL.xcframework"
+			path: "Dependencies/OpenSSL.xcframework"
 		),
 
 		
