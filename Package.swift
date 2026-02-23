@@ -26,13 +26,8 @@ let package = Package(
 
 	//TODO: make targets use binaries as dependencies rather than compile from source
 	dependencies: [
-//         .package(url: "https://github.com/krzyzanowskim/OpenSSL.git", .upToNextMinor(from: "1.1.180")),
 //         .package(url: "https://github.com/SideStore/iMobileDevice.swift", .upToNextMinor(from: "1.0.4"))
 	],
-
-
-
-
 
 	targets: [
 		// exposing OpenSSL as target
@@ -44,10 +39,6 @@ let package = Package(
 		
 		.target(
 			name: "ldid-core",
-			// dependencies: [
-			//     "OpenSSL",
-			//     .product(name: "libplist", package: "iMobileDevice.swift")
-			// ],
 			path: "Dependencies/ldid",
 			exclude: [
 				"ldid.hpp",
@@ -96,8 +87,6 @@ let package = Package(
 				.headerSearchPath("libplist/include"),
 				.headerSearchPath("libplist/src"),
 				.headerSearchPath("libplist/libcnary/include"),
-//                .headerSearchPath("../OpenSSL/ios/include"),
-
 				.unsafeFlags(["-w"])
 			],
 			cxxSettings: [
@@ -121,7 +110,6 @@ let package = Package(
 				.headerSearchPath("../../Dependencies/ldid/libplist/include"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
-//                .headerSearchPath("../../Dependencies/OpenSSL/ios/include"),
 			],
 			cxxSettings: [
 				.unsafeFlags(["-w"])
@@ -171,7 +159,6 @@ let package = Package(
 				"AltSign/include/module.modulemap",
 				"Dependencies/corecrypto",
 				"Dependencies/ldid",
-				"Dependencies/OpenSSL",
 				"Dependencies/minizip/iowin32.c",
 				"Dependencies/minizip/Makefile",
 				"Dependencies/minizip/minizip.c",
@@ -187,7 +174,6 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid"),
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
-//                .headerSearchPath("Dependencies/OpenSSL/ios/include"),
 				.define("unix=1"),
 			],
 			cxxSettings: [
@@ -197,7 +183,6 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid"),
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
-//                .headerSearchPath("Dependencies/OpenSSL/ios/include"),
 			 .define("unix=1"),
 			],
 			linkerSettings: [
@@ -214,9 +199,6 @@ let package = Package(
 				.headerSearchPath("Dependencies/minizip"),
 				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1"),
 			]
-//             swiftSettings: [
-//                 .define("MARKETPLACE")
-//             ]
 		),
 	],
 
