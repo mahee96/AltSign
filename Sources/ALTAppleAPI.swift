@@ -42,6 +42,13 @@ public final class ALTAppleAPI: NSObject {
 
     public static let sharedAPI = ALTAppleAPI()
 
+    func debugLog(_ text: String) {
+        if AltSign.isLoggingEnabled {
+            // logging enabled, so log it
+            print(text)
+        }
+    }
+
     // MARK: Private State
 
     let session: URLSession
@@ -161,8 +168,8 @@ extension ALTAppleAPI {
             string: "\(requestURL.absoluteString)?clientId=\(ALTClientID)"
         )!
 
-        print("[AltSign] sendRequest to: \(url.absoluteString)")
-        print("[AltSign] sendRequest parameters: \(parameters)")
+        debugLog("[AltSign] sendRequest to: \(url.absoluteString)")
+        debugLog("[AltSign] sendRequest parameters: \(parameters)")
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -196,7 +203,7 @@ extension ALTAppleAPI {
 
         session.dataTask(with: request) { data, _, error in
             if let error {
-                print("[AltSign] sendRequest failed with error: \(error)")
+                self.debugLog("[AltSign] sendRequest failed with error: \(error)")
             }
             guard let data else {
                 completionHandler(nil, error)
@@ -209,10 +216,10 @@ extension ALTAppleAPI {
                     options: [],
                     format: nil
                 )
-                print("[AltSign] sendRequest response: \(plist)")
+                self.debugLog("[AltSign] sendRequest response: \(plist)")
                 completionHandler(plist as? [String: Any], nil)
             } catch {
-                print("[AltSign] sendRequest failed to parse response plist. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
+                self.debugLog("[AltSign] sendRequest failed to parse response plist. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
                 completionHandler(
                     nil,
                     NSError(
@@ -252,8 +259,8 @@ extension ALTAppleAPI {
         comps.queryItems = items
         let query = comps.query ?? ""
 
-        print("[AltSign] sendServicesRequest to: \(request.url?.absoluteString ?? "unknown URL")")
-        print("[AltSign] sendServicesRequest parameters: \(additionalParameters ?? [:])")
+        debugLog("[AltSign] sendServicesRequest to: \(request.url?.absoluteString ?? "unknown URL")")
+        debugLog("[AltSign] sendServicesRequest parameters: \(additionalParameters ?? [:])")
 
         let bodyData: Data
         do {
@@ -307,7 +314,7 @@ extension ALTAppleAPI {
 
         session.dataTask(with: request) { data, _, error in
             if let error {
-                print("[AltSign] sendServicesRequest failed with error: \(error)")
+                self.debugLog("[AltSign] sendServicesRequest failed with error: \(error)")
             }
             guard let data else {
                 completionHandler(nil, error)
@@ -315,17 +322,17 @@ extension ALTAppleAPI {
             }
 
             if data.isEmpty {
-                print("[AltSign] sendServicesRequest response: (empty)")
+                self.debugLog("[AltSign] sendServicesRequest response: (empty)")
                 completionHandler([:], nil)
                 return
             }
 
             do {
                 let json = try JSONSerialization.jsonObject(with: data)
-                print("[AltSign] sendServicesRequest response: \(json)")
+                self.debugLog("[AltSign] sendServicesRequest response: \(json)")
                 completionHandler(json as? [String: Any], nil)
             } catch {
-                print("[AltSign] sendServicesRequest failed to parse response JSON. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
+                self.debugLog("[AltSign] sendServicesRequest failed to parse response JSON. Raw: \(String(data: data, encoding: .utf8) ?? \"unable to decode\")")
                 completionHandler(
                     nil,
                     NSError(
