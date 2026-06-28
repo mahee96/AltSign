@@ -12,7 +12,9 @@ public struct ALTDeviceType: OptionSet {
     public let rawValue: Int
 
      public static let iPhone  = ALTDeviceType(rawValue: 1 << 1)
-       public static let iPad    = ALTDeviceType(rawValue: 1 << 2)
+     public static let iphone  = iPhone
+     public static let iPad    = ALTDeviceType(rawValue: 1 << 2)
+     public static let ipad    = iPad
     public static let appleTV = ALTDeviceType(rawValue: 1 << 3)
 
     public static let none: ALTDeviceType = []
@@ -58,6 +60,17 @@ public func NSStringFromOperatingSystemVersion(
     }
 
     return value
+}
+
+
+extension OperatingSystemVersion {
+    public init(string: String) {
+        self = NSOperatingSystemVersionFromString(string)
+    }
+
+    public var stringValue: String {
+        return NSStringFromOperatingSystemVersion(self)
+    }
 }
 
 

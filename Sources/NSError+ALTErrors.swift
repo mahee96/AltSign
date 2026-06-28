@@ -13,8 +13,8 @@ public let ALTUnderlyingAppleAPIErrorDomain = "Apple.APIError"
 
 // MARK: UserInfo Keys
 
-public let ALTSourceFileErrorKey = NSError.UserInfoKey("ALTSourceFile")
-public let ALTSourceLineErrorKey = NSError.UserInfoKey("ALTSourceLine")
+public let ALTSourceFileErrorKey = "ALTSourceFile"
+public let ALTSourceLineErrorKey = "ALTSourceLine"
 public let ALTAppNameErrorKey    = NSError.UserInfoKey("appName")
 
 // MARK: Error Enums
@@ -50,6 +50,12 @@ public enum ALTAppleAPIError: Int, Error {
     case incorrectVerificationCode
     case authenticationHandshakeFailed
     case invalidAnisetteData
+}
+
+extension ALTAppleAPIError {
+    public static func unknown() -> ALTAppleAPIError {
+        return .unknown
+    }
 }
 
 // MARK: Install providers (Swift replacement for +load)
@@ -236,5 +242,44 @@ extension NSError {
         default:
             return nil
         }
+    }
+}
+
+
+// MARK: - Swift CustomNSError & Initializer Compatibility
+
+extension ALTError: CustomNSError {
+    public static var errorDomain: String {
+        return AltSignErrorDomain
+    }
+
+    public var errorCode: Int {
+        return rawValue
+    }
+
+    public var errorUserInfo: [String: Any] {
+        return [:]
+    }
+
+    public init(_ code: ALTError) {
+        self = code
+    }
+}
+
+extension ALTAppleAPIError: CustomNSError {
+    public static var errorDomain: String {
+        return ALTAppleAPIErrorDomain
+    }
+
+    public var errorCode: Int {
+        return rawValue
+    }
+
+    public var errorUserInfo: [String: Any] {
+        return [:]
+    }
+
+    public init(_ code: ALTAppleAPIError) {
+        self = code
     }
 }

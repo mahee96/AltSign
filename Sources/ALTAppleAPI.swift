@@ -46,8 +46,8 @@ public final class ALTAppleAPI: NSObject {
 
     let session: URLSession
     let dateFormatter: ISO8601DateFormatter
-    let baseURL: URL
-    let servicesBaseURL: URL
+    public let baseURL: URL
+    public let servicesBaseURL: URL
 
     private override init() {
         session = URLSession(configuration: .ephemeral)

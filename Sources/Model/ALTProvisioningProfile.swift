@@ -74,7 +74,7 @@ public final class ALTProvisioningProfile: NSObject, NSCopying {
             let teamName = dict["TeamName"] as? String,
             let creationDate = dict["CreationDate"] as? Date,
             let expirationDate = dict["ExpirationDate"] as? Date,
-            let entitlements = dict["Entitlements"] as? [ALTEntitlement: Any],
+            let entitlementsRaw = dict["Entitlements"] as? [String: Any],
             let deviceIDs = dict["ProvisionedDevices"] as? [String]
         else {
             return nil
@@ -87,7 +87,10 @@ public final class ALTProvisioningProfile: NSObject, NSCopying {
         self.teamName = teamName
         self.creationDate = creationDate
         self.expirationDate = expirationDate
-        self.entitlements = entitlements
+        
+        self.entitlements = entitlementsRaw.reduce(into: [ALTEntitlement: Any]()) { dict, pair in
+            dict[ALTEntitlement(rawValue: pair.key)] = pair.value
+        }
         self.deviceIDs = deviceIDs
         self.isFreeProvisioningProfile = (dict["LocalProvision"] as? Bool) ?? false
 

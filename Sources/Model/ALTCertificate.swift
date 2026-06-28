@@ -173,4 +173,8 @@ public final class ALTCertificate: NSObject {
             password: password
         )
     }
+
+    public func encryptedP12Data(withPassword password: String) -> Data? {
+        return self.encryptedP12Data(password: password)
+    }
 }

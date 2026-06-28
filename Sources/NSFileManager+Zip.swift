@@ -53,9 +53,7 @@ extension FileManager {
         } while archive.goToNextFile()
     }
 
-    // MARK: unzipAppBundle
-
-    func unzipAppBundle(
+    public func unzipAppBundle(
         at ipaURL: URL,
         to directoryURL: URL
     ) throws -> URL {
@@ -79,9 +77,13 @@ extension FileManager {
         throw ZipError.missingAppBundle(ipaURL)
     }
 
+    public func unzipAppBundle(at ipaURL: URL, toDirectory directoryURL: URL) throws -> URL {
+        return try self.unzipAppBundle(at: ipaURL, to: directoryURL)
+    }
+
     // MARK: zipAppBundle
 
-    func zipAppBundle(at appBundleURL: URL) throws -> URL {
+    public func zipAppBundle(at appBundleURL: URL) throws -> URL {
 
         let name = appBundleURL.deletingPathExtension().lastPathComponent
 

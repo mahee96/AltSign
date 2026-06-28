@@ -31,7 +31,15 @@ public final class ALTApplication: NSObject {
     }
     #endif
 
-    public private(set) var provisioningProfile: ALTProvisioningProfile?
+    private var _provisioningProfile: ALTProvisioningProfile?
+    @objc public var provisioningProfile: ALTProvisioningProfile? {
+        if let profile = _provisioningProfile {
+            return profile
+        }
+        let url = fileURL.appendingPathComponent("embedded.mobileprovision")
+        _provisioningProfile = ALTProvisioningProfile(url: url)
+        return _provisioningProfile
+    }
     public var appExtensions: Set<ALTApplication> {
         loadExtensions()
     }
@@ -182,7 +190,9 @@ private extension ALTApplication {
                 format: nil
            ) as? [String: Any] {
 
-            result = plist
+            result = plist.reduce(into: [ALTEntitlement: Any]()) { dict, pair in
+                dict[ALTEntitlement(rawValue: pair.key)] = pair.value
+            }
         }
 
         cachedEntitlements = result
@@ -202,21 +212,7 @@ private extension ALTApplication {
     }
 }
 
-// MARK: - Provisioning Profile
 
-private extension ALTApplication {
-
-    func loadProvisioningProfile() -> ALTProvisioningProfile? {
-
-        if provisioningProfile != nil {
-            return provisioningProfile
-        }
-
-        let url = fileURL.appendingPathComponent("embedded.mobileprovision")
-        provisioningProfile = ALTProvisioningProfile(url: url)
-        return provisioningProfile
-    }
-}
 
 // MARK: - Extensions
 
