@@ -42,12 +42,7 @@ public final class ALTAppleAPI: NSObject {
 
     public static let sharedAPI = ALTAppleAPI()
 
-    func debugLog(_ text: String) {
-        if AltSign.isLoggingEnabled {
-            // logging enabled, so log it
-            print(text)
-        }
-    }
+
 
     // MARK: Private State
 
@@ -203,7 +198,7 @@ extension ALTAppleAPI {
 
         session.dataTask(with: request) { data, _, error in
             if let error {
-                self.debugLog("[AltSign] sendRequest failed with error: \(error)")
+                verboseLog("[AltSign] sendRequest failed with error: \(error)")
             }
             guard let data else {
                 completionHandler(nil, error)
@@ -216,10 +211,10 @@ extension ALTAppleAPI {
                     options: [],
                     format: nil
                 )
-                self.debugLog("[AltSign] sendRequest response: \(plist)")
+                verboseLog("[AltSign] sendRequest response: \(plist)")
                 completionHandler(plist as? [String: Any], nil)
             } catch {
-                self.debugLog("[AltSign] sendRequest failed to parse response plist. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
+                verboseLog("[AltSign] sendRequest failed to parse response plist. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
                 completionHandler(
                     nil,
                     NSError(
@@ -314,7 +309,7 @@ extension ALTAppleAPI {
 
         session.dataTask(with: request) { data, _, error in
             if let error {
-                self.debugLog("[AltSign] sendServicesRequest failed with error: \(error)")
+                verboseLog("[AltSign] sendServicesRequest failed with error: \(error)")
             }
             guard let data else {
                 completionHandler(nil, error)
@@ -322,17 +317,17 @@ extension ALTAppleAPI {
             }
 
             if data.isEmpty {
-                self.debugLog("[AltSign] sendServicesRequest response: (empty)")
+                verboseLog("[AltSign] sendServicesRequest response: (empty)")
                 completionHandler([:], nil)
                 return
             }
 
             do {
                 let json = try JSONSerialization.jsonObject(with: data)
-                self.debugLog("[AltSign] sendServicesRequest response: \(json)")
+                verboseLog("[AltSign] sendServicesRequest response: \(json)")
                 completionHandler(json as? [String: Any], nil)
             } catch {
-                self.debugLog("[AltSign] sendServicesRequest failed to parse response JSON. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
+                verboseLog("[AltSign] sendServicesRequest failed to parse response JSON. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
                 completionHandler(
                     nil,
                     NSError(

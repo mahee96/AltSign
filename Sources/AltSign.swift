@@ -15,3 +15,15 @@ public enum AltSign {
         isLoggingEnabled = enabled
     }
 }
+
+@inline(__always)
+func debugLog(_ text: String) {
+    print(text)
+}
+
+@inline(__always)
+func verboseLog(_ text: String) {
+    if AltSign.isLoggingEnabled {
+        print(text)
+    }
+}

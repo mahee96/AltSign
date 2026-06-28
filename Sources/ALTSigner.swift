@@ -14,13 +14,6 @@ public final class ALTSigner: NSObject {
     public var team: ALTTeam
     public var certificate: ALTCertificate
 
-    private func debugLog(_ text: String) {
-        if AltSign.isLoggingEnabled {
-            // logging enabled, so log it
-            print(text)
-        }
-    }
-
     // MARK: Init
 
     public init(team: ALTTeam, certificate: ALTCertificate) {
@@ -50,10 +43,10 @@ public final class ALTSigner: NSObject {
                     progress: progress
                 )
 
-                self.debugLog("[AltSign] ALTSigner.signApp completed successfully for URL: \(appURL.path)")
+                verboseLog("[AltSign] ALTSigner.signApp completed successfully for URL: \(appURL.path)")
                 completionHandler(true, nil)
             } catch {
-                self.debugLog("[AltSign] ALTSigner.signApp failed with error: \(error)")
+                verboseLog("[AltSign] ALTSigner.signApp failed with error: \(error)")
                 completionHandler(false, error)
             }
         }
@@ -182,7 +175,7 @@ private extension ALTSigner {
                 let xml = entitlementsByURL[
                     url.resolvingSymlinksInPath()
                 ] ?? ""
-                self.debugLog("[AltSign] Ldid entitlementProvider queried path: '\(path)', returning xml (length: \(xml.count))")
+                verboseLog("[AltSign] Ldid entitlementProvider queried path: '\(path)', returning xml (length: \(xml.count))")
                 return xml
             },
             progress: {

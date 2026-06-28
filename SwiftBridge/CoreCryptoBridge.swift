@@ -15,17 +15,17 @@ public enum CoreCryptoBridge {
         private let ctx: native_bridge_ccsrp_ctx
 
         public init?() {
-            print("[AltSign] CoreCryptoBridge.SRP.init started")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.init started")
             guard let c = native_bridge_ccsrp_client_new() else {
-                print("[AltSign] CoreCryptoBridge.SRP.init failed: native_bridge_ccsrp_client_new returned null")
+                debugLog("[AltSign] CoreCryptoBridge.SRP.init failed: native_bridge_ccsrp_client_new returned null")
                 return nil
             }
             self.ctx = c
-            print("[AltSign] CoreCryptoBridge.SRP.init completed successfully")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.init completed successfully")
         }
 
         deinit {
-            print("[AltSign] CoreCryptoBridge.SRP.deinit deallocating context")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.deinit deallocating context")
             native_bridge_ccsrp_client_free(ctx)
         }
 
@@ -40,7 +40,7 @@ public enum CoreCryptoBridge {
 
         public func startAuthentication() -> Data? {
             let size = exchangeSize()
-            print("[AltSign] CoreCryptoBridge.SRP.startAuthentication starting. Exchange size: \(size)")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.startAuthentication starting. Exchange size: \(size)")
             var A = Data(count: size)
 
             let result = A.withUnsafeMutableBytes {
@@ -52,10 +52,10 @@ public enum CoreCryptoBridge {
             }
 
             if result == 0 {
-                print("[AltSign] CoreCryptoBridge.SRP.startAuthentication succeeded. Public key size: \(A.count) bytes")
+                verboseLog("[AltSign] CoreCryptoBridge.SRP.startAuthentication succeeded. Public key size: \(A.count) bytes")
                 return A
             } else {
-                print("[AltSign] CoreCryptoBridge.SRP.startAuthentication failed with native error: \(result)")
+                debugLog("[AltSign] CoreCryptoBridge.SRP.startAuthentication failed with native error: \(result)")
                 return nil
             }
         }
@@ -70,7 +70,7 @@ public enum CoreCryptoBridge {
             let size =
                 Int(native_bridge_ccsrp_get_session_key_length(ctx))
 
-            print("""
+            verboseLog("""
             [AltSign] CoreCryptoBridge.SRP.processChallenge starting:
               • Username: \(username)
               • Salt size: \(salt.count) bytes
@@ -98,32 +98,32 @@ public enum CoreCryptoBridge {
             }
 
             if result == 0 {
-                print("[AltSign] CoreCryptoBridge.SRP.processChallenge succeeded. M1 size: \(M1.count) bytes")
+                verboseLog("[AltSign] CoreCryptoBridge.SRP.processChallenge succeeded. M1 size: \(M1.count) bytes")
                 return M1
             } else {
-                print("[AltSign] CoreCryptoBridge.SRP.processChallenge failed with native error: \(result)")
+                debugLog("[AltSign] CoreCryptoBridge.SRP.processChallenge failed with native error: \(result)")
                 return nil
             }
         }
 
         public func verifyServerProof(_ proof: Data) -> Bool {
-            print("[AltSign] CoreCryptoBridge.SRP.verifyServerProof started. Proof size: \(proof.count) bytes")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.verifyServerProof started. Proof size: \(proof.count) bytes")
             let result = proof.withUnsafeBytes {
                 native_bridge_ccsrp_client_verify_session(
                     ctx,
                     $0.baseAddress
                 ) != 0
             }
-            print("[AltSign] CoreCryptoBridge.SRP.verifyServerProof validation result: \(result)")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.verifyServerProof validation result: \(result)")
             return result
         }
 
         public func sessionKey() -> Data? {
-            print("[AltSign] CoreCryptoBridge.SRP.sessionKey requested")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.sessionKey requested")
             guard let ptr =
                 native_bridge_ccsrp_get_session_key(ctx)
             else {
-                print("[AltSign] CoreCryptoBridge.SRP.sessionKey failed: native returned null session key pointer")
+                debugLog("[AltSign] CoreCryptoBridge.SRP.sessionKey failed: native returned null session key pointer")
                 return nil
             }
 
@@ -131,7 +131,7 @@ public enum CoreCryptoBridge {
                 Int(native_bridge_ccsrp_get_session_key_length(ctx))
 
             let key = Data(bytes: ptr, count: len)
-            print("[AltSign] CoreCryptoBridge.SRP.sessionKey retrieved. Key size: \(key.count) bytes")
+            verboseLog("[AltSign] CoreCryptoBridge.SRP.sessionKey retrieved. Key size: \(key.count) bytes")
             return key
         }
     }
@@ -144,12 +144,12 @@ public enum CoreCryptoBridge {
         strings: [String]
     ) -> Data? {
 
-        print("[AltSign] CoreCryptoBridge.hmacSHA256 started. Key size: \(key.count) bytes, strings: \(strings)")
+        verboseLog("[AltSign] CoreCryptoBridge.hmacSHA256 started. Key size: \(key.count) bytes, strings: \(strings)")
 
         guard let di = native_bridge_ccsha256_di(),
               let ctx = native_bridge_cchmac_create(di)
         else {
-            print("[AltSign] CoreCryptoBridge.hmacSHA256 failed: native_bridge_cchmac_create returned null")
+            debugLog("[AltSign] CoreCryptoBridge.hmacSHA256 failed: native_bridge_cchmac_create returned null")
             return nil
         }
 
@@ -185,7 +185,7 @@ public enum CoreCryptoBridge {
             )
         }
 
-        print("[AltSign] CoreCryptoBridge.hmacSHA256 succeeded. Output size: \(out.count) bytes")
+        verboseLog("[AltSign] CoreCryptoBridge.hmacSHA256 succeeded. Output size: \(out.count) bytes")
         return out
     }
 
@@ -200,7 +200,7 @@ public enum CoreCryptoBridge {
         outputLength: Int
     ) -> Data? {
 
-        print("[AltSign] CoreCryptoBridge.pbkdf2 started. Password size: \(password.count) bytes, salt size: \(salt.count) bytes, rounds: \(rounds), outputLength: \(outputLength)")
+        verboseLog("[AltSign] CoreCryptoBridge.pbkdf2 started. Password size: \(password.count) bytes, salt size: \(salt.count) bytes, rounds: \(rounds), outputLength: \(outputLength)")
 
         var out = Data(count: outputLength)
 
@@ -224,10 +224,10 @@ public enum CoreCryptoBridge {
         }
 
         if result == 0 {
-            print("[AltSign] CoreCryptoBridge.pbkdf2 succeeded. Output size: \(out.count) bytes")
+            verboseLog("[AltSign] CoreCryptoBridge.pbkdf2 succeeded. Output size: \(out.count) bytes")
             return out
         } else {
-            print("[AltSign] CoreCryptoBridge.pbkdf2 failed with native error: \(result)")
+            debugLog("[AltSign] CoreCryptoBridge.pbkdf2 failed with native error: \(result)")
             return nil
         }
     }
@@ -236,7 +236,7 @@ public enum CoreCryptoBridge {
     // MARK: - Digest (SHA256)
 
     public static func sha256(_ data: Data) -> Data? {
-        print("[AltSign] CoreCryptoBridge.sha256 started. Data size: \(data.count) bytes")
+        verboseLog("[AltSign] CoreCryptoBridge.sha256 started. Data size: \(data.count) bytes")
 
         var out = Data(count: 32)
 
@@ -251,10 +251,10 @@ public enum CoreCryptoBridge {
         }
 
         if result == 0 {
-            print("[AltSign] CoreCryptoBridge.sha256 succeeded. Hash: \(out.hexEncodedString())")
+            verboseLog("[AltSign] CoreCryptoBridge.sha256 succeeded. Hash: \(out.hexEncodedString())")
             return out
         } else {
-            print("[AltSign] CoreCryptoBridge.sha256 failed with native error: \(result)")
+            debugLog("[AltSign] CoreCryptoBridge.sha256 failed with native error: \(result)")
             return nil
         }
     }
@@ -267,10 +267,10 @@ public enum CoreCryptoBridge {
         outputLength: Int
     ) -> Data? {
 
-        print("[AltSign] CoreCryptoBridge.pbkdf2SHA256 started")
+        verboseLog("[AltSign] CoreCryptoBridge.pbkdf2SHA256 started")
 
         guard let di = native_bridge_ccsha256_di() else {
-            print("[AltSign] CoreCryptoBridge.pbkdf2SHA256 failed: native ccsha256_di returned null")
+            debugLog("[AltSign] CoreCryptoBridge.pbkdf2SHA256 failed: native ccsha256_di returned null")
             return nil
         }
 
@@ -291,7 +291,7 @@ public enum CoreCryptoBridge {
         ciphertext: Data
     ) -> Data? {
 
-        print("""
+        verboseLog("""
         [AltSign] CoreCryptoBridge.aesCBCDecrypt started:
           • Key size: \(key.count) bytes
           • IV size: \(iv.count) bytes
@@ -322,10 +322,10 @@ public enum CoreCryptoBridge {
 
         if result == 0 {
             let decrypted = out.prefix(outLen)
-            print("[AltSign] CoreCryptoBridge.aesCBCDecrypt succeeded. Decrypted size: \(decrypted.count) bytes")
+            verboseLog("[AltSign] CoreCryptoBridge.aesCBCDecrypt succeeded. Decrypted size: \(decrypted.count) bytes")
             return decrypted
         } else {
-            print("[AltSign] CoreCryptoBridge.aesCBCDecrypt failed with native error: \(result)")
+            debugLog("[AltSign] CoreCryptoBridge.aesCBCDecrypt failed with native error: \(result)")
             return nil
         }
     }
@@ -340,7 +340,7 @@ public enum CoreCryptoBridge {
         tag: Data
     ) -> Data? {
 
-        print("""
+        verboseLog("""
         [AltSign] CoreCryptoBridge.aesGCMDecrypt started:
           • Key size: \(key.count) bytes
           • Nonce size: \(nonce.count) bytes
@@ -379,10 +379,10 @@ public enum CoreCryptoBridge {
         }
 
         if result == 0 {
-            print("[AltSign] CoreCryptoBridge.aesGCMDecrypt succeeded. Decrypted size: \(out.count) bytes")
+            verboseLog("[AltSign] CoreCryptoBridge.aesGCMDecrypt succeeded. Decrypted size: \(out.count) bytes")
             return out
         } else {
-            print("[AltSign] CoreCryptoBridge.aesGCMDecrypt failed with native error: \(result)")
+            debugLog("[AltSign] CoreCryptoBridge.aesGCMDecrypt failed with native error: \(result)")
             return nil
         }
     }
