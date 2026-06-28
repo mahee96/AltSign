@@ -11,7 +11,13 @@ let package = Package(
 
     products: [
         .library(
-            name: "AltSign",
+            name: "AltSign-Static",
+            type: .static,
+            targets: ["AltSign"]
+        ),
+        .library(
+            name: "AltSign-Dynamic",
+            type: .dynamic,
             targets: ["AltSign"]
         )
     ],
