@@ -14,7 +14,7 @@ public extension ALTAppleAPI {
     }
     
     /* Teams */
-    public func processResponse(
+    func processResponse(
         _ responseDictionary: [String: Any],
         parseHandler: (() -> Any?)?,
         resultCodeHandler: ((Int) -> Error?)?
@@ -191,7 +191,7 @@ public extension ALTAppleAPI {
     }
     
     func revoke(_ certificate: ALTCertificate, for team: ALTTeam, session: ALTAppleAPISession, completionHandler: @escaping (Bool, Error?) -> Void) {
-        let url = URL(string: "certificates/\(certificate.identifier)", relativeTo: self.servicesBaseURL)!
+        let url = URL(string: "certificates/\(certificate.identifier ?? "nil")", relativeTo: self.servicesBaseURL)!
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
         
