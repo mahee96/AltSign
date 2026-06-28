@@ -7,23 +7,14 @@
 //
 
 import Foundation
+import SwiftBridge
 
 public enum AltSign {
-    public private(set) static var isLoggingEnabled = false
+    public static var isLoggingEnabled: Bool {
+        return AltSignLogging.isLoggingEnabled
+    }
 
     public static func setLogging(_ enabled: Bool) {
-        isLoggingEnabled = enabled
-    }
-}
-
-@inline(__always)
-func debugLog(_ text: String) {
-    print(text)
-}
-
-@inline(__always)
-func verboseLog(_ text: String) {
-    if AltSign.isLoggingEnabled {
-        print(text)
+        AltSignLogging.setLogging(enabled)
     }
 }
