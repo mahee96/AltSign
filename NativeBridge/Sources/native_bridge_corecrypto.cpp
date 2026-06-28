@@ -12,6 +12,8 @@
 #define CC_INTERNAL_SDK 1
 #define CC_USE_L4 0
 
+extern "C" {
+    
 #include <corecrypto/ccdigest.h>
 #include <corecrypto/ccsha2.h>
 #include <corecrypto/ccsrp.h>
@@ -24,7 +26,6 @@
 #include <corecrypto/ccmode.h>
 #include <corecrypto/ccmode.h>
 
-extern "C" {
 
 
 // ============================================================
