@@ -128,7 +128,7 @@ public extension ALTAppleAPI {
         let url = URL(string: "certificates", relativeTo: self.servicesBaseURL)!
         let request = URLRequest(url: url)
         
-        self.sendServicesRequest(request, additionalParameters: ["filter[certificateType]": "IOS_DEVELOPMENT"], session: session, team: team) { responseDictionary, requestError in
+        self.sendServicesRequest(request, additionalParameters: ["filter[certificateType]": "IOS_DEVELOPMENT,DEVELOPMENT"], session: session, team: team) { responseDictionary, requestError in
             guard let responseDictionary else {
                 completionHandler(nil, requestError)
                 return
