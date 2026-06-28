@@ -18,6 +18,8 @@ public extension ALTAppleAPI
         // Authenticating only works with lowercase email address, even if Apple ID contains capital letters.
         let sanitizedAppleID = unsanitizedAppleID.lowercased()
 
+        print("[AltSign] Starting authenticate for Apple ID: \(sanitizedAppleID)")
+
         do {
             let clientDictionary = [
                 "bootstrap": true,
@@ -38,7 +40,12 @@ public extension ALTAppleAPI
             ] as [String: Any]
 
             let context = GSAContext(username: sanitizedAppleID, password: password)
-            guard let publicKey = context.start() else { throw ALTAppleAPIError.authenticationHandshakeFailed }
+            guard let publicKey = context.start() else {
+                print("[AltSign] Failed to start GSAContext / generate public key A")
+                throw ALTAppleAPIError.authenticationHandshakeFailed
+            }
+
+            print("[AltSign] GSAContext started. Generated public key A (A2k): \(publicKey.hexEncodedString())")
 
             let parameters = [
                 "A2k": publicKey,
@@ -48,6 +55,7 @@ public extension ALTAppleAPI
                 "u": sanitizedAppleID
             ] as [String: Any]
 
+            print("[AltSign] Sending authentication 'init' request...")
             sendAuthenticationRequest(parameters: parameters, anisetteData: anisetteData) { result in
                 do {
                     let responseDictionary = try result.get()
@@ -56,7 +64,18 @@ public extension ALTAppleAPI
                           let salt = responseDictionary["s"] as? Data,
                           let iterations = responseDictionary["i"] as? Int,
                           let serverPublicKey = responseDictionary["B"] as? Data
-                    else { throw URLError(.badServerResponse) }
+                    else {
+                        print("[AltSign] Failed to parse authentication init response dictionary: \(responseDictionary)")
+                        throw URLError(.badServerResponse)
+                    }
+
+                    print("""
+                    [AltSign] Received init response:
+                      • c: \(c)
+                      • salt: \(salt.hexEncodedString())
+                      • iterations: \(iterations)
+                      • B: \(serverPublicKey.hexEncodedString())
+                    """)
 
                     context.salt = salt
                     context.serverPublicKey = serverPublicKey
@@ -65,8 +84,11 @@ public extension ALTAppleAPI
                     let isHexadecimal = (sp == "s2k_fo")
 
                     guard let verificationMessage = context.makeVerificationMessage(iterations: iterations, isHexadecimal: isHexadecimal) else {
+                        print("[AltSign] Failed to generate verification message M1")
                         throw ALTAppleAPIError.authenticationHandshakeFailed
                     }
+
+                    print("[AltSign] Generated verification message M1: \(verificationMessage.hexEncodedString())")
 
                     let parameters = [
                         "c": c,
@@ -76,6 +98,7 @@ public extension ALTAppleAPI
                         "u": sanitizedAppleID
                     ] as [String: Any]
 
+                    print("[AltSign] Sending authentication 'complete' request...")
                     self.sendAuthenticationRequest(parameters: parameters, anisetteData: anisetteData) { result in
                         do {
                             let responseDictionary = try result.get()
@@ -83,19 +106,43 @@ public extension ALTAppleAPI
                             guard let serverVerificationMessage = responseDictionary["M2"] as? Data,
                                   let serverDictionary = responseDictionary["spd"] as? Data,
                                   let statusDictionary = responseDictionary["Status"] as? [String: Any]
-                            else { throw URLError(.badServerResponse) }
+                            else {
+                                print("[AltSign] Failed to parse complete response dictionary: \(responseDictionary)")
+                                throw URLError(.badServerResponse)
+                            }
 
-                            guard context.verifyServerVerificationMessage(serverVerificationMessage) else { throw ALTAppleAPIError.authenticationHandshakeFailed }
-                            guard let decryptedData = serverDictionary.decryptedCBC(context: context) else { throw ALTAppleAPIError.authenticationHandshakeFailed }
+                            print("""
+                            [AltSign] Received complete response:
+                              • M2: \(serverVerificationMessage.hexEncodedString())
+                              • spd size: \(serverDictionary.count) bytes
+                            """)
+
+                            guard context.verifyServerVerificationMessage(serverVerificationMessage) else {
+                                print("[AltSign] Server verification message M2 failed validation!")
+                                throw ALTAppleAPIError.authenticationHandshakeFailed
+                            }
+                            print("[AltSign] Server verification message M2 validated successfully.")
+
+                            guard let decryptedData = serverDictionary.decryptedCBC(context: context) else {
+                                print("[AltSign] Failed to decrypt server dictionary (spd)")
+                                throw ALTAppleAPIError.authenticationHandshakeFailed
+                            }
+                            print("[AltSign] Decrypted server dictionary successfully.")
 
                             guard let decryptedDictionary = try PropertyListSerialization.propertyList(from: decryptedData, format: nil) as? [String: Any],
                                   let dsid = decryptedDictionary["adsid"] as? String,
                                   let idmsToken = decryptedDictionary["GsIdmsToken"] as? String
-                            else { throw URLError(.badServerResponse) }
+                            else {
+                                print("[AltSign] Decrypted plist format is invalid or missing adsid/GsIdmsToken: \(decryptedData)")
+                                throw URLError(.badServerResponse)
+                            }
 
+                            print("[AltSign] Parse complete. dsid: \(dsid), token: \(idmsToken)")
                             context.dsid = dsid
 
                             let authType = statusDictionary["au"] as? String
+                            print("[AltSign] Authentication status type: \(authType ?? "nil")")
+
                             switch authType {
                             case "trustedDeviceSecondaryAuth":
                                 guard let verificationHandler = verificationHandler else { throw ALTAppleAPIError.requiresTwoFactorAuthentication }
@@ -383,6 +430,8 @@ private extension ALTAppleAPI {
                 "Request": requestParameters
             ]
 
+            print("[AltSign] sendAuthenticationRequest payload: \(parameters)")
+
             let httpHeaders = [
                 "Content-Type": "text/x-xml-plist",
                 "X-MMe-Client-Info": anisetteData.deviceDescription,
@@ -400,15 +449,26 @@ private extension ALTAppleAPI {
             let dataTask = self.session.dataTask(with: request) { (data, response, error) in
                 do
                 {
+                    if let error {
+                        print("[AltSign] sendAuthenticationRequest failed with error: \(error)")
+                    }
                     guard let data = data else { throw error ?? ALTAppleAPIError.unknown }
 
                     guard let responseDictionary = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
                           let dictionary = responseDictionary["Response"] as? [String: Any],
                           let status = dictionary["Status"] as? [String: Any]
-                    else { throw URLError(.badServerResponse) }
+                    else {
+                        print("[AltSign] sendAuthenticationRequest response is invalid or could not be parsed: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
+                        throw URLError(.badServerResponse)
+                    }
+
+                    print("[AltSign] sendAuthenticationRequest response Status: \(status)")
+                    print("[AltSign] sendAuthenticationRequest response Data: \(dictionary)")
 
                     let errorCode = status["ec"] as? Int ?? 0
                     guard errorCode != 0 else { return completionHandler(.success(dictionary)) }
+
+                    print("[AltSign] sendAuthenticationRequest status returned error code: \(errorCode)")
 
                     switch errorCode
                     {
@@ -421,12 +481,14 @@ private extension ALTAppleAPI {
                         throw NSError(domain: ALTUnderlyingAppleAPIErrorDomain, code: errorCode, userInfo: [NSLocalizedDescriptionKey: localizedDescription])
                     }
                 } catch {
+                    print("[AltSign] sendAuthenticationRequest failed during response processing with error: \(error)")
                     completionHandler(.failure(error))
                 }
             }
 
             dataTask.resume()
         } catch {
+            print("[AltSign] sendAuthenticationRequest failed before sending: \(error)")
             completionHandler(.failure(error))
         }
     }

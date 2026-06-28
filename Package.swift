@@ -19,6 +19,10 @@ let package = Package(
             name: "AltSign-Dynamic",
             type: .dynamic,
             targets: ["AltSign"]
+        ),
+        .library(
+            name: "OpenSSL",
+            targets: ["OpenSSL"]
         )
     ],
 

@@ -69,12 +69,16 @@ size_t native_bridge_ccsrp_exchange_size(native_bridge_ccsrp_ctx ctx)
 int native_bridge_ccsrp_client_start_authentication(
     native_bridge_ccsrp_ctx ctx,
     void *A_bytes,
-    void *rng
-)
+    void *rng)
 {
+    struct ccrng_state *rng_state = (struct ccrng_state*)rng;
+    if (!rng_state) {
+        int err = 0;
+        rng_state = ccrng(&err);
+    }
     return ccsrp_client_start_authentication(
         (ccsrp_ctx_t)ctx,
-        (struct ccrng_state*)rng,
+        rng_state,
         A_bytes
     );
 }

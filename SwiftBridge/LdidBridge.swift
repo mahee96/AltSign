@@ -45,26 +45,40 @@ public enum LdidBridge {
 
     public static func entitlements(at url: URL) throws -> String {
         let path = url.path
-        guard !path.isEmpty else { throw Error.invalidPath }
+        print("[AltSign] LdidBridge.entitlements(at: \(path)) started")
+        guard !path.isEmpty else {
+            print("[AltSign] LdidBridge.entitlements failed: path is empty")
+            throw Error.invalidPath
+        }
 
         guard let ptr = path.withCString({ native_bridge_ldid_entitlements($0) }) else {
+            print("[AltSign] LdidBridge.entitlements failed: native operation failed")
             throw Error.operationFailed("ldid entitlements failed")
         }
 
         defer { native_bridge_free_string(ptr) }
-        return String(cString: ptr)
+        let result = String(cString: ptr)
+        print("[AltSign] LdidBridge.entitlements parsed successfully. Length: \(result.count) chars")
+        return result
     }
 
     public static func requirements(at url: URL) throws -> String {
         let path = url.path
-        guard !path.isEmpty else { throw Error.invalidPath }
+        print("[AltSign] LdidBridge.requirements(at: \(path)) started")
+        guard !path.isEmpty else {
+            print("[AltSign] LdidBridge.requirements failed: path is empty")
+            throw Error.invalidPath
+        }
 
         guard let ptr = path.withCString({ native_bridge_ldid_requirements($0) }) else {
+            print("[AltSign] LdidBridge.requirements failed: native operation failed")
             throw Error.operationFailed("ldid requirements failed")
         }
 
         defer { native_bridge_free_string(ptr) }
-        return String(cString: ptr)
+        let result = String(cString: ptr)
+        print("[AltSign] LdidBridge.requirements parsed successfully. Length: \(result.count) chars")
+        return result
     }
 
     // MARK: Signing API
@@ -75,14 +89,22 @@ public enum LdidBridge {
         entitlementProvider: @escaping (String) -> String,
         progress: @escaping () -> Void
     ) throws {
+        print("[AltSign] LdidBridge.sign started for appPath: \(appPath), keyData: \(keyData.count) bytes")
 
         guard !appPath.isEmpty else {
+            print("[AltSign] LdidBridge.sign failed: appPath is empty")
             throw Error.invalidPath
         }
 
         // install callbacks
-        _LdidCallbackStorage.entitlementProvider = entitlementProvider
-        _LdidCallbackStorage.progress = progress
+        _LdidCallbackStorage.entitlementProvider = { path in
+            print("[AltSign] LdidBridge.sign entitlement trampoline callback for path: \(path)")
+            return entitlementProvider(path)
+        }
+        _LdidCallbackStorage.progress = {
+            print("[AltSign] LdidBridge.sign progress trampoline callback triggered")
+            progress()
+        }
 
         defer {
             _LdidCallbackStorage.entitlementProvider = nil
@@ -92,7 +114,8 @@ public enum LdidBridge {
         var errorPtr: UnsafeMutablePointer<CChar>? = nil
 
         let ok = keyData.withUnsafeBytes { bytes in
-            native_bridge_ldid_sign(
+            print("[AltSign] LdidBridge.sign calling native_bridge_ldid_sign")
+            return native_bridge_ldid_sign(
                 appPath,
                 bytes.bindMemory(to: UInt8.self).baseAddress,
                 Int32(keyData.count),
@@ -104,8 +127,11 @@ public enum LdidBridge {
 
         if !ok {
             let message = errorPtr.map { String(cString: $0) } ?? "ldid sign failed"
+            print("[AltSign] LdidBridge.sign native signing failed with error: \(message)")
             if let errorPtr { native_bridge_free_string(errorPtr) }
             throw Error.operationFailed(message)
         }
+
+        print("[AltSign] LdidBridge.sign native signing completed successfully")
     }
 }

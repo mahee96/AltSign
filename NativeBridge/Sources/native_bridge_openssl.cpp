@@ -22,6 +22,36 @@ static uint8_t *nb_copy_bio(BIO *bio, int32_t *len)
     return out;
 }
 
+static X509 *read_cert(const uint8_t *bytes, int32_t len)
+{
+    BIO *bio = BIO_new_mem_buf(bytes, len);
+    if (!bio) return nullptr;
+    // Try DER format first
+    X509 *cert = d2i_X509_bio(bio, nullptr);
+    if (!cert) {
+        // Fall back to PEM format
+        (void)BIO_reset(bio);
+        cert = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr);
+    }
+    BIO_free(bio);
+    return cert;
+}
+
+static EVP_PKEY *read_private_key(const uint8_t *bytes, int32_t len)
+{
+    BIO *bio = BIO_new_mem_buf(bytes, len);
+    if (!bio) return nullptr;
+    // Try DER format first
+    EVP_PKEY *key = d2i_PrivateKey_bio(bio, nullptr);
+    if (!key) {
+        // Fall back to PEM format
+        (void)BIO_reset(bio);
+        key = PEM_read_bio_PrivateKey(bio, nullptr, nullptr, nullptr);
+    }
+    BIO_free(bio);
+    return key;
+}
+
 extern "C" {
 
 int native_bridge_pkcs12_extract(
@@ -71,12 +101,7 @@ int native_bridge_x509_parse(
     char **out_name,
     char **out_serial)
 {
-    BIO *bio = BIO_new_mem_buf(pem_bytes, pem_len);
-
-    X509 *cert = nullptr;
-    PEM_read_bio_X509(bio, &cert, nullptr, nullptr);
-    BIO_free(bio);
-
+    X509 *cert = read_cert(pem_bytes, pem_len);
     if (!cert) return 0;
 
     X509_NAME *subject = X509_get_subject_name(cert);
@@ -115,19 +140,14 @@ int native_bridge_pkcs12_create(
     uint8_t **out_p12,
     int32_t *out_p12_len)
 {
-    BIO *certBIO = BIO_new_mem_buf(cert_bytes, cert_len);
-    BIO *keyBIO  = BIO_new_mem_buf(key_bytes, key_len);
+    X509 *cert = read_cert(cert_bytes, cert_len);
+    EVP_PKEY *key = read_private_key(key_bytes, key_len);
 
-    X509 *cert = nullptr;
-    EVP_PKEY *key = nullptr;
-
-    PEM_read_bio_X509(certBIO, &cert, nullptr, nullptr);
-    PEM_read_bio_PrivateKey(keyBIO, &key, nullptr, nullptr);
-
-    BIO_free(certBIO);
-    BIO_free(keyBIO);
-
-    if (!cert || !key) return 0;
+    if (!cert || !key) {
+        if (cert) X509_free(cert);
+        if (key) EVP_PKEY_free(key);
+        return 0;
+    }
 
     PKCS12 *p12 =
         PKCS12_create(password, "", key, cert, nullptr, 0,0,0,0,0);

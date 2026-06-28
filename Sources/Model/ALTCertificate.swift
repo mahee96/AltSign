@@ -17,6 +17,7 @@ public final class ALTCertificate: NSObject {
     public var identifier: String?
     public var machineName: String?
     public var machineIdentifier: String?
+    public var requesterEmail: String?
 
     public var data: Data?
     public var privateKey: Data?
@@ -79,6 +80,7 @@ public final class ALTCertificate: NSObject {
         self.identifier = identifier
         self.machineName = machineName
         self.machineIdentifier = machineIdentifier
+        self.requesterEmail = attributes["requesterEmail"] as? String
     }
 
     // MARK: P12 Init

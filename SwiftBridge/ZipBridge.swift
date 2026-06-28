@@ -25,30 +25,36 @@ public enum ZipBridge {
         // MARK: Open
 
         public static func open(at url: URL) throws -> Archive {
+            print("[AltSign] ZipBridge.Archive.open(at: \(url.path)) started")
             guard let h = url.path.withCString({
                 native_bridge_unzOpen($0)
             }) else {
+                print("[AltSign] ZipBridge.Archive.open failed: corrupt archive or unable to open")
                 throw ZipError.corruptArchive(url)
             }
+            print("[AltSign] ZipBridge.Archive.open succeeded")
             return Archive(h)
         }
 
         // MARK: Navigation
 
         public func goToFirstFile() throws {
+            print("[AltSign] ZipBridge.Archive.goToFirstFile called")
             guard native_bridge_unzGoToFirstFile(handle) == 0 else {
+                print("[AltSign] ZipBridge.Archive.goToFirstFile failed")
                 throw ZipError.readFailed(.init(fileURLWithPath: ""))
             }
         }
 
         public func goToNextFile() -> Bool {
-            native_bridge_unzGoToNextFile(handle) == 0
+            let hasNext = native_bridge_unzGoToNextFile(handle) == 0
+            print("[AltSign] ZipBridge.Archive.goToNextFile called. Has next file: \(hasNext)")
+            return hasNext
         }
 
         // MARK: File Info
 
         public func currentFilename() throws -> String {
-
             var info = [UInt8](repeating: 0, count: 256)
             var name = [CChar](repeating: 0, count: 1024)
 
@@ -60,17 +66,21 @@ public enum ZipBridge {
             )
 
             guard r == 0 else {
+                print("[AltSign] ZipBridge.Archive.currentFilename failed to get info from native bridge")
                 throw ZipError.readFailed(.init(fileURLWithPath: ""))
             }
 
-            return String(cString: name)
+            let filename = String(cString: name)
+            print("[AltSign] ZipBridge.Archive.currentFilename retrieved: \(filename)")
+            return filename
         }
 
         // MARK: Reading
 
         public func readCurrentFile() throws -> Data {
-
+            print("[AltSign] ZipBridge.Archive.readCurrentFile started")
             guard native_bridge_unzOpenCurrentFile(handle) == 0 else {
+                print("[AltSign] ZipBridge.Archive.readCurrentFile failed: native_bridge_unzOpenCurrentFile returned error")
                 throw ZipError.readFailed(.init(fileURLWithPath: ""))
             }
 
@@ -90,6 +100,7 @@ public enum ZipBridge {
                 )
 
                 if read < 0 {
+                    print("[AltSign] ZipBridge.Archive.readCurrentFile failed: native_bridge_unzReadCurrentFile returned error code \(read)")
                     throw ZipError.readFailed(.init(fileURLWithPath: ""))
                 }
 
@@ -98,6 +109,7 @@ public enum ZipBridge {
                 result.append(buffer, count: Int(read))
             }
 
+            print("[AltSign] ZipBridge.Archive.readCurrentFile completed. Read size: \(result.count) bytes")
             return result
         }
     }
@@ -113,25 +125,31 @@ public enum ZipBridge {
         }
 
         deinit {
+            print("[AltSign] ZipBridge.Writer.deinit closing zip handle")
             native_bridge_zipClose(handle)
         }
 
         public static func create(at url: URL) throws -> Writer {
+            print("[AltSign] ZipBridge.Writer.create(at: \(url.path)) started")
             guard let h = url.path.withCString({
                 native_bridge_zipOpen($0)
             }) else {
+                print("[AltSign] ZipBridge.Writer.create failed: unable to create/open zip file")
                 throw ZipError.writeFailed(url)
             }
+            print("[AltSign] ZipBridge.Writer.create succeeded")
             return Writer(h)
         }
 
         public func writeFile(path: String, data: Data?) throws {
+            print("[AltSign] ZipBridge.Writer.writeFile started for internal path: '\(path)', data size: \(data?.count ?? 0) bytes")
 
             let openOK = path.withCString {
                 native_bridge_zipOpenNewFileInZip(handle, $0)
             } == 0
 
             guard openOK else {
+                print("[AltSign] ZipBridge.Writer.writeFile failed: native_bridge_zipOpenNewFileInZip returned error")
                 throw ZipError.writeFailed(.init(fileURLWithPath: path))
             }
 
@@ -139,7 +157,10 @@ public enum ZipBridge {
                 native_bridge_zipCloseFileInZip(handle)
             }
 
-            guard let data else { return }
+            guard let data else {
+                print("[AltSign] ZipBridge.Writer.writeFile completed: no data to write")
+                return
+            }
 
             let ok = data.withUnsafeBytes {
                 native_bridge_zipWriteInFileInZip(
@@ -150,8 +171,11 @@ public enum ZipBridge {
             } == 0
 
             guard ok else {
+                print("[AltSign] ZipBridge.Writer.writeFile failed: native_bridge_zipWriteInFileInZip returned error")
                 throw ZipError.writeFailed(.init(fileURLWithPath: path))
             }
+
+            print("[AltSign] ZipBridge.Writer.writeFile completed successfully")
         }
     }
 }

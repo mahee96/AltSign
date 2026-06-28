@@ -161,6 +161,9 @@ extension ALTAppleAPI {
             string: "\(requestURL.absoluteString)?clientId=\(ALTClientID)"
         )!
 
+        print("[AltSign] sendRequest to: \(url.absoluteString)")
+        print("[AltSign] sendRequest parameters: \(parameters)")
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = bodyData
@@ -192,6 +195,9 @@ extension ALTAppleAPI {
         }
 
         session.dataTask(with: request) { data, _, error in
+            if let error {
+                print("[AltSign] sendRequest failed with error: \(error)")
+            }
             guard let data else {
                 completionHandler(nil, error)
                 return
@@ -203,8 +209,10 @@ extension ALTAppleAPI {
                     options: [],
                     format: nil
                 )
+                print("[AltSign] sendRequest response: \(plist)")
                 completionHandler(plist as? [String: Any], nil)
             } catch {
+                print("[AltSign] sendRequest failed to parse response plist. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
                 completionHandler(
                     nil,
                     NSError(
@@ -243,6 +251,9 @@ extension ALTAppleAPI {
         var comps = URLComponents()
         comps.queryItems = items
         let query = comps.query ?? ""
+
+        print("[AltSign] sendServicesRequest to: \(request.url?.absoluteString ?? "unknown URL")")
+        print("[AltSign] sendServicesRequest parameters: \(additionalParameters ?? [:])")
 
         let bodyData: Data
         do {
@@ -295,20 +306,26 @@ extension ALTAppleAPI {
         }
 
         session.dataTask(with: request) { data, _, error in
+            if let error {
+                print("[AltSign] sendServicesRequest failed with error: \(error)")
+            }
             guard let data else {
                 completionHandler(nil, error)
                 return
             }
 
             if data.isEmpty {
+                print("[AltSign] sendServicesRequest response: (empty)")
                 completionHandler([:], nil)
                 return
             }
 
             do {
                 let json = try JSONSerialization.jsonObject(with: data)
+                print("[AltSign] sendServicesRequest response: \(json)")
                 completionHandler(json as? [String: Any], nil)
             } catch {
+                print("[AltSign] sendServicesRequest failed to parse response JSON. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
                 completionHandler(
                     nil,
                     NSError(

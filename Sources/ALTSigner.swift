@@ -31,6 +31,9 @@ public final class ALTSigner: NSObject {
         completionHandler: @escaping (Bool, Error?) -> Void
     ) -> Progress {
 
+        print("[AltSign] ALTSigner.signApp called at URL: \(appURL.path)")
+        print("[AltSign] Provisioning profiles provided: \(profiles.map { "\($0.name) (\($0.bundleIdentifier))" })")
+
         let progress = Progress(totalUnitCount: 1)
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -41,8 +44,10 @@ public final class ALTSigner: NSObject {
                     progress: progress
                 )
 
+                print("[AltSign] ALTSigner.signApp completed successfully for URL: \(appURL.path)")
                 completionHandler(true, nil)
             } catch {
+                print("[AltSign] ALTSigner.signApp failed with error: \(error)")
                 completionHandler(false, error)
             }
         }
@@ -62,11 +67,14 @@ private extension ALTSigner {
     ) throws {
 
         guard let application = ALTApplication(fileURL: appURL) else {
+            print("[AltSign] ALTSigner.performSigning error: Failed to parse ALTApplication at \(appURL.path)")
             throw NSError(
                 domain: AltSignErrorDomain,
                 code: ALTError.invalidApp.rawValue
             )
         }
+
+        print("[AltSign] ALTSigner.performSigning started for app: \(application.bundleIdentifier)")
 
         func profile(for app: ALTApplication) -> ALTProvisioningProfile? {
             for profile in profiles
@@ -79,8 +87,10 @@ private extension ALTSigner {
         var entitlementsByURL: [URL: String] = [:]
 
         func prepare(_ app: ALTApplication) throws {
+            print("[AltSign] ALTSigner.prepare started for: \(app.bundleIdentifier)")
 
             guard let profile = profile(for: app) else {
+                print("[AltSign] ALTSigner.prepare error: Missing provisioning profile for \(app.bundleIdentifier)")
                 throw NSError(
                     domain: AltSignErrorDomain,
                     code: ALTError.missingProvisioningProfile.rawValue
@@ -90,9 +100,11 @@ private extension ALTSigner {
             let profileURL =
                 app.fileURL.appendingPathComponent("embedded.mobileprovision")
 
+            print("[AltSign] Writing mobileprovision to: \(profileURL.path)")
             try profile.data.write(to: profileURL)
 
             var filtered = profile.entitlements
+            print("[AltSign] Original profile entitlements: \(filtered)")
 
             for (key, _) in profile.entitlements {
                 if app.entitlements[key] == nil {
@@ -107,6 +119,8 @@ private extension ALTSigner {
                 }
             }
 
+            print("[AltSign] Filtered entitlements for signing: \(filtered)")
+
             let plist = try PropertyListSerialization.data(
                 fromPropertyList: filtered,
                 format: .xml,
@@ -114,11 +128,14 @@ private extension ALTSigner {
             )
 
             guard let string = String(data: plist, encoding: .utf8) else {
+                print("[AltSign] ALTSigner.prepare error: Failed to convert plist data to XML string")
                 throw NSError(
                     domain: AltSignErrorDomain,
                     code: ALTError.unknown.rawValue
                 )
             }
+
+            print("[AltSign] Prepared Entitlements XML:\n\(string)")
 
             entitlementsByURL[
                 app.fileURL.resolvingSymlinksInPath()
@@ -128,18 +145,21 @@ private extension ALTSigner {
         try prepare(application)
 
         for ext in application.appExtensions {
+            print("[AltSign] Found app extension: \(ext.bundleIdentifier) at \(ext.fileURL.path)")
             try prepare(ext)
         }
 
         // ---- LDID SIGNING VIA NATIVE BRIDGE ----
 
         guard let keyData = certificate.p12Data() else {
+            print("[AltSign] ALTSigner.performSigning error: Failed to get p12 certificate data")
             throw NSError(
                 domain: AltSignErrorDomain,
                 code: ALTError.unknown.rawValue
             )
         }
         
+        print("[AltSign] Invoking LdidBridge.sign for appPath: \(application.fileURL.path)")
         try LdidBridge.sign(
             appPath: application.fileURL.path,
             keyData: keyData,
@@ -153,9 +173,11 @@ private extension ALTSigner {
                         .appendingPathComponent(path)
                 }
 
-                return entitlementsByURL[
+                let xml = entitlementsByURL[
                     url.resolvingSymlinksInPath()
                 ] ?? ""
+                print("[AltSign] Ldid entitlementProvider queried path: '\(path)', returning xml (length: \(xml.count))")
+                return xml
             },
             progress: {
                 progress.completedUnitCount += 1

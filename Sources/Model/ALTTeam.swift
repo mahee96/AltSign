@@ -21,7 +21,7 @@ public final class ALTTeam: NSObject {
     public let name: String
     public let identifier: String
     public let type: ALTTeamType
-    public unowned let account: ALTAccount
+    public let account: ALTAccount
 
     // MARK: Designated Init (matches ObjC)
 

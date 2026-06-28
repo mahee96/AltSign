@@ -38,6 +38,15 @@ public enum OpenSSLBridge {
         subject: CSRSubject
     ) throws -> (csr: Data, privateKey: Data) {
 
+        print("""
+        [AltSign] OpenSSLBridge.generateCSR started:
+          • Country: \(subject.country)
+          • State: \(subject.state)
+          • Locality: \(subject.locality)
+          • Organization: \(subject.organization)
+          • Common Name: \(subject.commonName)
+        """)
+
         var csrPtr: UnsafeMutablePointer<UInt8>?
         var csrLen: Int32 = 0
 
@@ -76,11 +85,13 @@ public enum OpenSSLBridge {
                 errorPtr.map { String(cString: $0) }
                 ?? "CSR generation failed"
 
+            print("[AltSign] OpenSSLBridge.generateCSR native failed with error: \(message)")
             if let errorPtr { native_bridge_free_string(errorPtr) }
             throw Error.operationFailed(message)
         }
 
         guard let csrPtr, let keyPtr else {
+            print("[AltSign] OpenSSLBridge.generateCSR native succeeded but returned null output pointers")
             throw Error.operationFailed("CSR output missing")
         }
 
@@ -90,6 +101,7 @@ public enum OpenSSLBridge {
         native_bridge_free(csrPtr)
         native_bridge_free(keyPtr)
 
+        print("[AltSign] OpenSSLBridge.generateCSR succeeded. Generated CSR size: \(csr.count) bytes, privateKey size: \(key.count) bytes")
         return (csr, key)
     }
 
@@ -100,6 +112,8 @@ public enum OpenSSLBridge {
         _ data: Data,
         password: String?
     ) -> (cert: Data, key: Data)? {
+
+        print("[AltSign] OpenSSLBridge.extractPKCS12 started. Data size: \(data.count) bytes, hasPassword: \(password != nil)")
 
         var certPtr: UnsafeMutablePointer<UInt8>?
         var certLen: Int32 = 0
@@ -121,7 +135,10 @@ public enum OpenSSLBridge {
 
         guard ok != 0,
               let certPtr,
-              let keyPtr else { return nil }
+              let keyPtr else {
+            print("[AltSign] OpenSSLBridge.extractPKCS12 failed: native pkcs12 extraction returned error or null pointers")
+            return nil
+        }
 
         let cert = Data(bytes: certPtr, count: Int(certLen))
         let key  = Data(bytes: keyPtr,  count: Int(keyLen))
@@ -129,6 +146,7 @@ public enum OpenSSLBridge {
         native_bridge_free(certPtr)
         native_bridge_free(keyPtr)
 
+        print("[AltSign] OpenSSLBridge.extractPKCS12 succeeded. Extracted cert size: \(cert.count) bytes, key size: \(key.count) bytes")
         return (cert, key)
     }
 
@@ -138,6 +156,8 @@ public enum OpenSSLBridge {
     public static func parseCertificate(
         _ data: Data
     ) -> (name: String, serial: String)? {
+
+        print("[AltSign] OpenSSLBridge.parseCertificate started. Cert size: \(data.count) bytes")
 
         var namePtr: UnsafeMutablePointer<CChar>?
         var serialPtr: UnsafeMutablePointer<CChar>?
@@ -153,7 +173,10 @@ public enum OpenSSLBridge {
 
         guard ok != 0,
               let namePtr,
-              let serialPtr else { return nil }
+              let serialPtr else {
+            print("[AltSign] OpenSSLBridge.parseCertificate failed: native x509 parsing returned error or null pointers")
+            return nil
+        }
 
         let name = String(cString: namePtr)
         let serial = String(cString: serialPtr)
@@ -161,6 +184,7 @@ public enum OpenSSLBridge {
         native_bridge_free(namePtr)
         native_bridge_free(serialPtr)
 
+        print("[AltSign] OpenSSLBridge.parseCertificate succeeded. Name: \(name), Serial: \(serial)")
         return (name, serial)
     }
 
@@ -172,6 +196,8 @@ public enum OpenSSLBridge {
         key: Data,
         password: String
     ) -> Data? {
+
+        print("[AltSign] OpenSSLBridge.createPKCS12 started. Cert size: \(cert.count) bytes, Key size: \(key.count) bytes")
 
         var outPtr: UnsafeMutablePointer<UInt8>?
         var outLen: Int32 = 0
@@ -190,11 +216,15 @@ public enum OpenSSLBridge {
             }
         }
 
-        guard ok != 0, let outPtr else { return nil }
+        guard ok != 0, let outPtr else {
+            print("[AltSign] OpenSSLBridge.createPKCS12 failed: native pkcs12 creation returned error or null pointer")
+            return nil
+        }
 
         let result = Data(bytes: outPtr, count: Int(outLen))
         native_bridge_free(outPtr)
 
+        print("[AltSign] OpenSSLBridge.createPKCS12 succeeded. Output PKCS12 size: \(result.count) bytes")
         return result
     }
 }

@@ -21,6 +21,9 @@ namespace ldid
     // Based heavily on ldid::Sign executable locating logic.
     std::string ExecutablePath(std::string bundlePath)
     {
+        if (bundlePath.empty() || bundlePath.back() != '/') {
+            bundlePath += "/";
+        }
         auto folder = ldid::DiskFolder(bundlePath);
         
         std::string executable;
