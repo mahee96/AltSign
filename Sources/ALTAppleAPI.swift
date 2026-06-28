@@ -332,7 +332,7 @@ extension ALTAppleAPI {
                 self.debugLog("[AltSign] sendServicesRequest response: \(json)")
                 completionHandler(json as? [String: Any], nil)
             } catch {
-                self.debugLog("[AltSign] sendServicesRequest failed to parse response JSON. Raw: \(String(data: data, encoding: .utf8) ?? \"unable to decode\")")
+                self.debugLog("[AltSign] sendServicesRequest failed to parse response JSON. Raw: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
                 completionHandler(
                     nil,
                     NSError(

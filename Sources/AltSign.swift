@@ -9,5 +9,9 @@
 import Foundation
 
 public enum AltSign {
-    public static var isLoggingEnabled = false
+    public private(set) static var isLoggingEnabled = false
+
+    public static func setLogging(_ enabled: Bool) {
+        isLoggingEnabled = enabled
+    }
 }

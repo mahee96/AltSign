@@ -141,7 +141,7 @@ public extension ALTAppleAPI
                             context.dsid = dsid
 
                             let authType = statusDictionary["au"] as? String
-                            self.debugLog("[AltSign] Authentication status type: \(authType ?? \"nil\")")
+                            self.debugLog("[AltSign] Authentication status type: \(authType ?? "nil")")
 
                             switch authType {
                             case "trustedDeviceSecondaryAuth":
@@ -458,7 +458,7 @@ private extension ALTAppleAPI {
                           let dictionary = responseDictionary["Response"] as? [String: Any],
                           let status = dictionary["Status"] as? [String: Any]
                     else {
-                        self.debugLog("[AltSign] sendAuthenticationRequest response is invalid or could not be parsed: \(String(data: data, encoding: .utf8) ?? \"unable to decode\")")
+                        self.debugLog("[AltSign] sendAuthenticationRequest response is invalid or could not be parsed: \(String(data: data, encoding: .utf8) ?? "unable to decode")")
                         throw URLError(.badServerResponse)
                     }
 
